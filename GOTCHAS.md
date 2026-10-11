@@ -101,3 +101,14 @@ tuples for heap results, `~(f @ local)` plus `[@nontail]` for callbacks.
   `DUNE_BUILD_DIR=/abs/path/_build-<repo>` (dune honours it for build, test,
   fmt and promote) so locks never collide; add `_build-*/` to `.gitignore` at
   the workspace root.
+
+### From the order-book / fixed-decimal extraction
+
+- Keep extracted libraries wrapped (Jane Street style); submodules become
+  `Order_book.Fill`, not top-level `Fill`. Do not `open! Order_book` when it
+  defines a `Result` module: it shadows Core's.
+- Mixed-type fixed-point arithmetic (Price * Size -> Usd) is a functor
+  `Fixed_decimal.Product (Price) (Size) (Usd)`; one instance per call site.
+- `ls` is aliased to `eza` in this shell and can hang in agents; use `/bin/ls`.
+- Never chain `dune test; git commit; git push` with `;` — a killed test
+  still commits. Use `&&`.
