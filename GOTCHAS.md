@@ -13,3 +13,8 @@ Dated, append-only. Promote stable entries into `skills/`.
 - **Build time**: the OxCaml compiler is built from source; budget 15-30 min
   on an M-series Mac. Start the switch build in the background before
   scaffolding anything.
+- **CI**: apt's opam on `ubuntu-latest` (2.1.x) fails to add the ox repository
+  (`cp: cannot stat .git/objects/maintenance.lock`). Use `ocaml/setup-ocaml@v3`
+  with `ocaml-compiler: ocaml-variants.5.2.0+ox` and an `opam-repositories`
+  block listing `ox` before `default`; it ships a current opam and caches the
+  switch.

@@ -28,6 +28,17 @@ alternatives.
 
 ## CI (GitHub Actions)
 
-Cache `~/.opam` keyed on `5.2.0+ox` and the opam files, create the switch only
-when `opam switch list --short` lacks it. See the `ci.yml` in any
-`winterchill-trading/hl-*` repo.
+Do not use apt's opam (2.1, breaks on git repositories). Use:
+
+```yaml
+- uses: ocaml/setup-ocaml@v3
+  with:
+    ocaml-compiler: ocaml-variants.5.2.0+ox
+    opam-repositories: |
+      ox: https://github.com/oxcaml/opam-repository.git
+      default: https://github.com/ocaml/opam-repository.git
+- run: opam install . --deps-only --with-test
+- run: opam exec -- dune build && opam exec -- dune test
+```
+
+The first run compiles the compiler (30+ min); setup-ocaml caches it afterwards.
