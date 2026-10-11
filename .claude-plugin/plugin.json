@@ -1,0 +1,5 @@
+{
+  "name": "oxcaml-claude-skills",
+  "description": "Skills for working with OxCaml and the Jane Street OCaml stack (Base, Core, Async, ppx_jane) from Claude Code",
+  "version": "0.1.0"
+}
