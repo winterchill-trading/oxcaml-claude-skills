@@ -96,3 +96,8 @@ tuples for heap results, `~(f @ local)` plus `[@nontail]` for callbacks.
   trust an empty result.
 - Unbounded `gamma * sigma^2` in Avellaneda-Stoikov quoting blows up on a
   single bad book print; cap the volatility estimate.
+- A finished agent can leave a `dune build` process alive holding `_build/.lock`
+  for everyone in the workspace. Parallel agents should each set
+  `DUNE_BUILD_DIR=/abs/path/_build-<repo>` (dune honours it for build, test,
+  fmt and promote) so locks never collide; add `_build-*/` to `.gitignore` at
+  the workspace root.
