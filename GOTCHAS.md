@@ -18,3 +18,26 @@ Dated, append-only. Promote stable entries into `skills/`.
   with `ocaml-compiler: ocaml-variants.5.2.0+ox` and an `opam-repositories`
   block listing `ox` before `default`; it ships a current opam and caches the
   switch.
+
+### ppx_yojson_conv with Core (from hl-protocol)
+
+- Generated code calls `string_of_yojson`, `int_of_yojson` etc. unqualified;
+  `open! Core` does not provide them. Add
+  `open Ppx_yojson_conv_lib.Yojson_conv.Primitives` in files that derive
+  yojson, and only there (warning 33 fails the build on an unused open).
+- `include Comparable.Make (T)` shadows `<`, `=` for type `t`; later int code
+  like `if n < 0` breaks. Use `Int.(n < 0)` or put int helpers before the include.
+- `[@yojson.option]` accepts a missing field but rejects explicit `null`. For
+  APIs that send `null`, use `[@default None] [@yojson_drop_if Option.is_none]`.
+  For bools: `[@default false] [@yojson_drop_if not]`.
+- Records reject unknown fields unless `[@@yojson.allow_extra_fields]`; put it
+  on every response type decoded from a third-party API.
+- Derived variants encode as `["Ctor", ...]`, never matching tagged objects.
+  Hand-write variant codecs over a derived helper record. Inline-record
+  constructors cannot be passed as values; destructure field by field.
+- `int64` encodes as `Intlit`; emit `Int` when it fits so the tree equals what
+  Yojson parses.
+- Distinct newtypes over one fixed-point implementation need a generative
+  functor (`Make ()`), otherwise Price and Size unify.
+- Tuples encode as JSON arrays, handy for pairs like `users: [buyer, seller]`.
+- GNU sed is on PATH on this Mac: `sed -i ''` fails, use `sed -i`.
