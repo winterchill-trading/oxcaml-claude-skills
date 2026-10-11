@@ -68,3 +68,17 @@ Dated, append-only. Promote stable entries into `skills/`.
   a local path only sees committed HEAD, not the working tree.
 - Opam pins warn about missing `maintainer`/`authors` fields; harmless but
   add them to `dune-project` to keep logs clean.
+
+### OxCaml modes (from the hl-sim matching engine)
+
+See `skills/oxcaml-modes/SKILL.md` for the verified patterns and error texts:
+`global_` fields on local records, `exclave_` on recursive returns, no local
+tuples for heap results, `~(f @ local)` plus `[@nontail]` for callbacks.
+
+### Workspace
+
+- Across projects in one dune workspace only public library names resolve:
+  `(libraries hl-protocol)`, not `hl_protocol`.
+- `git add -A` in one repo while a subagent works in the same checkout sweeps
+  its half-finished files into your commit. Serialize work per repo, or `git
+  add` specific paths.

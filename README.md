@@ -17,6 +17,7 @@ Or copy a skill directory into `~/.claude/skills/`.
 | Skill | What it covers |
 |-------|----------------|
 | `skills/oxcaml-setup` | Creating and maintaining an OxCaml opam switch, CI, depexts |
+| `skills/oxcaml-modes` | Verified `local_`/`exclave_`/`global_`/`@ local` patterns with compiler error texts |
 | `skills/janestreet-ocaml-style` | Writing Base/Core/Async code the Jane Street way, ppx_jane, expect tests |
 
 `GOTCHAS.md` is the running log; entries are promoted into skills once stable.
