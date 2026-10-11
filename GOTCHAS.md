@@ -51,3 +51,20 @@ Dated, append-only. Promote stable entries into `skills/`.
   `(inline_tests (flags (:standard -source-tree-root .)))`.
 - A `_build` directory produced by one switch confuses the other; `dune clean`
   when swapping switches.
+
+### Multi-repo workflow (from the fixed-decimal extraction)
+
+- Every push to CI rebuilds the OxCaml compiler until the first run finishes
+  and seeds the setup-ocaml cache (30-60 min). Add a `concurrency` group with
+  `cancel-in-progress: true` to every workflow, and let one run finish before
+  pushing more.
+- `gh run cancel` silently no-ops for an account without write access; switch
+  to the org admin identity first.
+- Consume a sibling library by its public (opam) name in `(libraries ...)`,
+  e.g. `fixed-decimal`, not the internal `fixed_decimal`.
+- A `dune-workspace` + `dune-project` at the parent directory of all checkouts
+  makes dune resolve sibling repos without opam pins; `dune build @all
+  @runtest` inside a sub-repo then builds via the parent root. `opam pin` with
+  a local path only sees committed HEAD, not the working tree.
+- Opam pins warn about missing `maintainer`/`authors` fields; harmless but
+  add them to `dune-project` to keep logs clean.
