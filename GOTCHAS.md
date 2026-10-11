@@ -82,3 +82,17 @@ tuples for heap results, `~(f @ local)` plus `[@nontail]` for callbacks.
 - `git add -A` in one repo while a subagent works in the same checkout sweeps
   its half-finished files into your commit. Serialize work per repo, or `git
   add` specific paths.
+
+### From the hl-mm strategy core
+
+- Inside a local open like `Price.( a + b )`, record field access `o.limit_px`
+  fails with "Unbound record field" when the record type is not in `Price`;
+  bind the field outside the local open.
+- Constructors in tuple lists in test code need qualifying (`Side.Buy`), the
+  type is not inferred early enough.
+- `dune fmt` re-wraps doc comments; apply text edits before formatting.
+- Multiple agents in one dune workspace share the `_build` lock; a run can
+  queue behind another and return an empty output file. Re-run rather than
+  trust an empty result.
+- Unbounded `gamma * sigma^2` in Avellaneda-Stoikov quoting blows up on a
+  single bad book print; cap the volatility estimate.
