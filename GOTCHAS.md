@@ -112,3 +112,9 @@ tuples for heap results, `~(f @ local)` plus `[@nontail]` for callbacks.
 - `ls` is aliased to `eza` in this shell and can hang in agents; use `/bin/ls`.
 - Never chain `dune test; git commit; git push` with `;` — a killed test
   still commits. Use `&&`.
+
+### From the hl-sim server
+
+See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
+`Server.create_expert` + `` `Expert ``, `Http.Response.make` for 101,
+`Log.Global.set_output []` in tests, executable/library name clash.
