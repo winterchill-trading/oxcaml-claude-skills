@@ -41,3 +41,13 @@ Dated, append-only. Promote stable entries into `skills/`.
   functor (`Make ()`), otherwise Price and Size unify.
 - Tuples encode as JSON arrays, handy for pairs like `users: [buyer, seller]`.
 - GNU sed is on PATH on this Mac: `sed -i ''` fails, use `sed -i`.
+
+### ppx_expect under the ox switch
+
+- `dune test` fails with `Sys_error "../test_foo.ml: No such file or directory"`
+  for every inline-test partition. The `ox` ppx_expect (v0.18~preview) records
+  bare file names, but dune calls the runner from the test directory with
+  `-source-tree-root ..`. Fix in the test `dune` stanza:
+  `(inline_tests (flags (:standard -source-tree-root .)))`.
+- A `_build` directory produced by one switch confuses the other; `dune clean`
+  when swapping switches.

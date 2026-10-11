@@ -26,6 +26,18 @@ extended type checker. Check with `opam install --dry-run <pkg>` first, and
 prefer Jane Street packages (`async_websocket`, `cohttp-async`) over
 alternatives.
 
+## Inline tests (ppx_expect / ppx_inline_test)
+
+The ox build of ppx_expect needs the runner's source root pointed at the test
+directory, or every partition fails with `Sys_error "../foo.ml"`:
+
+```
+(library
+ (name foo_test)
+ (inline_tests (flags (:standard -source-tree-root .)))
+ (preprocess (pps ppx_jane)))
+```
+
 ## CI (GitHub Actions)
 
 Do not use apt's opam (2.1, breaks on git repositories). Use:
