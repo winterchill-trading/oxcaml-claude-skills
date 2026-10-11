@@ -118,3 +118,15 @@ tuples for heap results, `~(f @ local)` plus `[@nontail]` for callbacks.
 See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 `Server.create_expert` + `` `Expert ``, `Http.Response.make` for 101,
 `Log.Global.set_output []` in tests, executable/library name clash.
+
+### From the hl-mm live loop
+
+- With `open Async`, every `let%expect_test` in the file must return
+  `unit Deferred.t`, even pure ones.
+- Serialize strategy ticks, plan execution and REST polls on one queue; an
+  open-orders snapshot requested before a plan lands can be mistaken for its
+  confirmation and orders get placed twice.
+- A websocket client that resends the fills snapshot on resubscribe needs
+  de-duplication by trade id on the consumer side.
+- End-to-end runs are not bit-repeatable even with a seeded simulator, because
+  request timing changes matching order; assert on ranges, not exact numbers.
