@@ -130,3 +130,30 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
   de-duplication by trade id on the consumer side.
 - End-to-end runs are not bit-repeatable even with a seeded simulator, because
   request timing changes matching order; assert on ranges, not exact numbers.
+
+### From hl-client (switch and TLS)
+
+- `opam install async_websocket` on the ox switch can pick v0.13.0, an empty
+  stub with no modules. Pin the ox preview version
+  (`async_websocket.v0.18~preview.130.106+341`); it pulls cryptokit and zarith.
+- `async_ssl` does not compile against Homebrew `openssl@4` (`ASN1_STRING_data`
+  removed), and even when built against `openssl@3` the link picks up
+  `/opt/homebrew/lib/libssl` via zarith's `-L`. Workaround: write an
+  `openssl.pc` under `~/.opam/5.2.0+ox/share/openssl3-pkgconfig/` whose `Libs`
+  names the openssl@3 libraries by absolute path (first entry must start with
+  `-` or dune rejects it), then `PKG_CONFIG_PATH=<dir> opam reinstall async_ssl`.
+  Without async_ssl, conduit-async silently has no TLS.
+- `Conduit_async.V3.resolve_uri` builds an OpenSSL config without SNI hostname
+  for `wss`; rebuild it with `Ssl.Config.create ~hostname ()`. cohttp-async
+  sets SNI itself for `https`.
+- `Uri` has no `sexp_of_t` without `uri-sexp`.
+- Under ox Base, `Random.State.make_self_init` raises inside inline tests
+  ("nondeterministic seed is forbidden"); seed from `Time_ns.now`.
+- Base `List.init` calls `f` from the last index down.
+- A library module named `Info` shadows `Core.Info` for siblings and for
+  `open Hl_client`; use `Core.Info` explicitly.
+- Async's `eprintf`/`eprint_s` are deprecated as errors; use `Print.eprintf`.
+- ppx_yojson_conv error text embeds the source path, which differs between
+  workspace and opam builds; keep it out of expect output.
+- A `dune build` can hold `_build/.lock` with no child processes for 30+
+  minutes; wrap agent builds in `timeout`.

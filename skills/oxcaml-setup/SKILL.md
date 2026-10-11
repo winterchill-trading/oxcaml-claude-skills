@@ -18,6 +18,13 @@ opam install dune core async ppx_jane ppx_yojson_conv yojson --yes
 The compiler builds from source: 15-30 minutes. Run it in the background and
 scaffold while waiting.
 
+## Known package pitfalls
+
+- `async_websocket`: force the ox preview version, v0.13.0 resolves to an
+  empty stub.
+- `async_ssl` on macOS with Homebrew `openssl@4`: see GOTCHAS.md "From
+  hl-client" for the pkg-config override; without it TLS silently is absent.
+
 ## Checking a package builds on OxCaml
 
 The `ox` repo pins OxCaml-compatible versions of Jane Street packages. Third
