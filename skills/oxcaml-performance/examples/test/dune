@@ -1,0 +1,8 @@
+(library
+ (name perf_examples_test)
+ (inline_tests
+  (flags
+   (:standard -source-tree-root .)))
+ (libraries core perf_examples unboxed.float_u)
+ (preprocess
+  (pps ppx_jane)))
