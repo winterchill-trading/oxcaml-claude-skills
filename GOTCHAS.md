@@ -372,3 +372,7 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - Inside `[%message ...]` a labelled argument cannot come first (start with `""`); inside `[%sexp ...]` a type annotation cannot follow `{ r with ... }`.
 - `dune build --release` implies `--root .` and cannot be combined with `--root`; use `--profile release`. `OCAMLPARAM='_,O3=1'` turns on flambda2 `-O3` for everything built from source, not for opam libraries; most of the order-book gain came from inlining comparisons from fixed-decimal and exchange-core, so `-O3` per repo is pointless. Allocation counts differ between core_bench and an inline test for the same function; pin them in expect tests, they matched between macOS and Linux CI. Calling a function on a local value in tail position needs `[@nontail]`. A `local_` option of an abstract non-immediate type is useless to callers.
 - zsh does not word-split variables: `opam install $PKGS` passes one argument; use `${=PKGS}` or `bash -c`. Serialize opam installs across agents.
+- Pinning compiler error text in a dune rule (`with-accepted-exit-codes 2 (run %{ocamlopt} -i f.ml)`
+  diffed against `f.expected`) works, but on GitHub Actions the compiler colours its
+  output and the diff fails; pass `-color never`. A unique value passed to an `@ local`
+  parameter without `borrow_` counts as a use, so consuming it later fails.
