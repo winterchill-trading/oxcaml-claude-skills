@@ -480,3 +480,50 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - Deribit gaps: `Ws_client` runs `on_connect` synchronously before reading the new connection's first frame, so a gap written there always precedes that connection's events (no double-report trick needed). Deribit public channels have no replay: trades in the window are gone, the book restarts from a full snapshot, and the first ticker after reconnect re-emits funding.
 - Coinbase gaps: frames are numbered per connection, so one sequence break gives one gap per synced product and one resubscribe for all; Coinbase resends a batch of recent trades on subscribe, so only older trades are lost after dedupe by trade id. In `[%message]` an unlabeled field expression `(update.kind : t)` prints with the label `update.kind`; write `~kind:(...)`.
 - Kraken gaps: spot has no sequence numbers, so a book checksum mismatch is the break signal; the reconnect clears books and writes one gap before the first event of the new connection. `dune promote <path>` with `--root` did not promote test output; `--auto-promote` on `@<repo>/runtest` did. All eight venues now report `Resync` gaps through `feed_with_gaps`.
+
+## OxCaml performance (research round, 2026-10-13)
+
+Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
+`research/oxcaml-performance/`, syntax in `skills/oxcaml-performance`.
+
+- **Loopify does not unbox floats.** A self-tail-recursive sum with a `float`
+  accumulator allocates 2 words per iteration (2000 per 1000 elements) in dev, release
+  and release `-O3`, with or without `[@@loop]`. A `let mutable` loop or a `float#`
+  accumulator drops it to the 2 words of the boxed result.
+- **`[@unrolled n]` is a call-site attribute.** On a definition (`[@@unrolled 3]`) it is
+  warning 53, an error in the dev profile; write `(f [@unrolled 3]) x`.
+- **Two `Float_u` modules.** `Stdlib_upstream_compatible.Float_u` has `add`, `sub`,
+  `mul`, `div`; the `unboxed.float_u` library's `Float_u` has `add` and `sub` but no
+  top-level `mul`/`div` (use `Float_u.O.( * )`), and is the one with `compare`, `equal`,
+  sexp and quickcheck. `[@@deriving compare, equal, hash, bin_io]` on a field typed
+  `float#` fails with `Unbound value "compare_float_u"` etc.; type the field `Float_u.t`
+  from `unboxed.float_u`. `[@@deriving sexp]` on a bare `float#` field works.
+- **Mixed blocks break polymorphic compare at run time.** `x = x` on a record with a
+  `float#` field compiles and raises `Invalid_argument("compare: mixed block value")`.
+- **Docs lag the compiler.** `type t = K of int64# | L` compiles although oxcaml.org lists
+  it as a restriction; `exception E of float#` is still rejected. `ppx_template`
+  instantiation (`f [@mode local]`) works outside a `%template` block.
+- **Gated features.** `ocaml_simd*`, `parallel`, the `Multicore` library and
+  `ocaml-probes` are not installed. The vector type `int64x2#` type-checks; `[%probe]`
+  compiles and is silently ignored (`probes: false`, `-probes` "option not available").
+  `Domain.spawn` carries alerts `unsafe_multidomain` and `do_not_spawn_domains`; use
+  `Domain.Safe.spawn [@alert "-do_not_spawn_domains"]`.
+- **Extension universe.** The default enables layouts, small numbers, `let mutable`,
+  labeled tuples and iarrays with no flag; `-extension-universe upstream_compatible`
+  rejects `float32` and unboxed records.
+- **zero_alloc details.** `val f : ... [@@zero_alloc]` and `val[@zero_alloc] f : ...`
+  both work and are enforced against an unannotated implementation.
+  `[@zero_alloc strict]` passes with `failwith "literal"` and fails with a formatted
+  message. Must-fail tests for zero_alloc need `ocamlopt -c` (the check is in the
+  backend, `-i` passes) and the symbol names in the error (`(camlM__f_2_5_code)`) stripped
+  with sed.
+- **Iobuf on v0.18** takes three type parameters: `(read, Iobuf.seek, Iobuf.global)
+  Iobuf.t`; library `core_kernel.iobuf`.
+- **Measure words, not nanoseconds.** Removing an option, tuple or float box changed
+  time by 0.3-1.5 ns on a hot minor heap; words went to 0. `-O3` changed no words-per-call
+  figure in these cases. The `core_bench` command has no test-name filter.
+- **JSON.** One Binance aggTrade frame: `Yojson.Safe.from_string` plus member lookups
+  298 words, 2.4 us; a `[@zero_alloc]` scanner 0 words, 0.26 us. The first scanner
+  (restart every key search, compare every byte) was 0.88 us.
+- **Copying build outputs.** Files under `_build` are read-only; `cp` onto an earlier
+  copy fails with `Permission denied`. `rm -f` the destination first.
