@@ -299,3 +299,13 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - Concatenated zstd frames decode as one stream with `zstd -d`, so appending a frame to an existing `.zst` is a valid restart strategy; the OCaml binding's `get_decompressed_size` reads only the first frame.
 - `on_raw` callbacks carry no symbol, so per-symbol raw files need one websocket per symbol.
 - Fixed high ports (3510/3520/3530/9910) for e2e scripts avoid stray listeners on 3000/3001.
+
+## Containers (infra)
+
+- Core's `Time_ns` crashes at startup without `/etc/localtime`; runtime images need `tzdata` and a UTC symlink.
+- An Async binary as PID 1 ignores SIGTERM; run it under `tini` or pods hang until the grace period ends.
+- OxCaml under QEMU is too slow for multi-arch builds; use native `ubuntu-24.04-arm` runners and merge per-arch digests. Building the compiler in a 2 CPU / 6 GB Rancher Desktop VM needs swap on `/mnt/data` (`/` is tmpfs).
+- `RUN git clone` layers cache forever; `ADD https://github.com/<org>/<repo>.git#ref` re-checks the remote, and a `PIN_EPOCH` build arg busts the sibling pin cache.
+- hadolint 2.12 (the default in hadolint-action) rejects `ADD --keep-git-dir`; download 2.15+. The `docker/dockerfile:1.7` frontend crashed under Rancher Desktop buildkit; the built-in frontend works.
+- MinIO no longer publishes images on Docker Hub; `pgsty/minio` and `pgsty/mc` are the community builds that include `mc` and `curl`.
+- `gh workflow run` on org repos needs the admin identity; the secondary account gets 403.
