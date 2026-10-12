@@ -228,3 +228,14 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
   `Poly.equal`.
 - `Clock_ns.every ~start ~stop:(Pipe.closed w)` is the idiom for per-connection
   ping timers that stop on close.
+
+### From venue-net
+
+- `Websocket.frame_received` is a Bus delivering every frame including control
+  frames, and async_websocket answers server pings itself, so a silence
+  watchdog can count pongs with no custom frame code. Check `Bus.is_closed`
+  before subscribing to a socket that is closing.
+- Async `Clock` is `Time_float`; use `Clock_ns` for `Time_ns.Span`, converting
+  with `Time_ns.Span.of_span_float_round_nearest`.
+- `dune fmt` does not format `dune` files; edit library lists by hand carefully.
+- When a repo gains a sibling dependency, put the CI pin in the same commit.
