@@ -29,9 +29,11 @@ Verified on `5.2.0+ox` with Core/Base from the ox opam repository.
 
 ## Exercises
 
-1. Make `Local_examples.manhattan` take its argument without `@ local` in the
-   `.mli` only; predict and then read the error (expected: `Values do not
-   match`).
+1. Make `Local_examples.manhattan` remember its last argument in a global
+   `ref`; predict the error (expected: `This value is "local" but is expected
+   to be "global"`, at a caller passing a `local_` point). Note that dropping
+   `@ local` from the `.ml` alone still compiles: modes are inferred, and the
+   annotation only matters once the body lets the value escape.
 2. Write `Unique_examples.reset : counter @ unique -> counter @ unique` and a
    test that reads it through `borrow_` before and after.
 3. Remove `[@nontail]` from `Local_examples.sum_by` and explain the error.
