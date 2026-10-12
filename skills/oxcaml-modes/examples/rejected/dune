@@ -8,7 +8,7 @@
    unique_used_twice.output
    (with-accepted-exit-codes
     2
-    (run %{ocamlopt} -i unique_used_twice.ml)))))
+    (run %{ocamlopt} -color never -i unique_used_twice.ml)))))
 
 (rule
  (alias runtest)
@@ -22,7 +22,7 @@
    aliased_as_unique.output
    (with-accepted-exit-codes
     2
-    (run %{ocamlopt} -i aliased_as_unique.ml)))))
+    (run %{ocamlopt} -color never -i aliased_as_unique.ml)))))
 
 (rule
  (alias runtest)
@@ -36,7 +36,7 @@
    borrow_escapes.output
    (with-accepted-exit-codes
     2
-    (run %{ocamlopt} -i borrow_escapes.ml)))))
+    (run %{ocamlopt} -color never -i borrow_escapes.ml)))))
 
 (rule
  (alias runtest)
@@ -50,7 +50,7 @@
    consumed_while_borrowed.output
    (with-accepted-exit-codes
     2
-    (run %{ocamlopt} -i consumed_while_borrowed.ml)))))
+    (run %{ocamlopt} -color never -i consumed_while_borrowed.ml)))))
 
 (rule
  (alias runtest)
@@ -64,7 +64,7 @@
    local_escapes.output
    (with-accepted-exit-codes
     2
-    (run %{ocamlopt} -i local_escapes.ml)))))
+    (run %{ocamlopt} -color never -i local_escapes.ml)))))
 
 (rule
  (alias runtest)
@@ -78,7 +78,7 @@
    local_tail_call.output
    (with-accepted-exit-codes
     2
-    (run %{ocamlopt} -i local_tail_call.ml)))))
+    (run %{ocamlopt} -color never -i local_tail_call.ml)))))
 
 (rule
  (alias runtest)
@@ -92,7 +92,7 @@
    read_then_consume.output
    (with-accepted-exit-codes
     2
-    (run %{ocamlopt} -i read_then_consume.ml)))))
+    (run %{ocamlopt} -color never -i read_then_consume.ml)))))
 
 (rule
  (alias runtest)
