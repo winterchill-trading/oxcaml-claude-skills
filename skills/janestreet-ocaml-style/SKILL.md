@@ -5,6 +5,39 @@ description: Write OCaml in the Jane Street style using Base/Core/Async and ppx_
 
 # Jane Street style OCaml
 
+## Outcomes
+
+After reading this skill a session should be able to:
+
+1. Add a module to a library with an `.mli`, ppx_jane derivations and labelled
+   arguments, and have `dune build @all @runtest` and `dune fmt` pass.
+2. Make two numeric types that cannot be mixed up (a generative functor) and
+   re-export them from another library with type equality kept.
+3. Fix a bug test-first: an expect test showing the wrong output, then the fix.
+4. Write a `Base_quickcheck` property for a function's contract and pin a shrunk
+   counterexample.
+
+## Reference modules (org repos)
+
+| File | Shows |
+|------|-------|
+| `fixed-decimal/lib/fixed_decimal.mli` | `Make ()` generative functor, `Comparable`/`Hashable`, documented `.mli` |
+| `exchange-core/lib/price.mli` | Re-export with type and `comparator_witness` equality |
+| `mm-core/lib/params.mli` | Validated config record with `Or_error` |
+| `mm-core/test/test_properties.ml` | Base_quickcheck contract properties |
+| `order-book/test/test_bisim.ml` | Bisimulation against a naive model with Quickcheck |
+| `market-data/lib/trade.mli` | `Stable.V1` types with pinned `[%bin_digest]` in tests |
+
+## Exercises
+
+1. In `fixed-decimal`, write a test that `Price.t` and `Size.t` do not unify
+   (expected: a type error naming both types when the test is uncommented).
+2. Add `Fixed_decimal.abs` to the `.mli` first, build to see the error, then
+   implement it with an expect test and a quickcheck property
+   (`abs x >= zero`, `abs (neg x) = abs x`).
+3. Take any quickcheck property, break the function on purpose, and pin the
+   shrunk counterexample in `~examples`; revert the break and keep the example.
+
 - `open! Core` (or `open! Base` in libraries that must stay small) at the top
   of every file. Stdlib functions are shadowed; use `List.map ~f`, `Int.to_string`,
   `String.split ~on`, labelled arguments everywhere.
