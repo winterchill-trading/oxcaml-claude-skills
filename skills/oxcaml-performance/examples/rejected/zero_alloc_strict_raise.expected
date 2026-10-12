@@ -1,0 +1,10 @@
+File "zero_alloc_strict_raise.ml", line 2, characters 5-15:
+2 | let[@zero_alloc strict] check q = if q <= 0 then failwith (string_of_int q) else q
+         ^^^^^^^^^^
+Error: Annotation check for zero_alloc strict failed on function Zero_alloc_strict_raise.check.
+
+File "stdlib.ml", line 39, characters 22-33:
+Error: allocation of 24 bytes (zero_alloc_strict_raise.ml:2,49--75)
+
+File "stdlib.ml", line 280, characters 2-19:
+Error: called function may allocate (external call to caml_format_int) (zero_alloc_strict_raise.ml:2,58--75)

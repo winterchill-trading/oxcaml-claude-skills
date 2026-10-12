@@ -1,0 +1,9 @@
+File "unboxed_in_tuple.ml", line 2, characters 24-25:
+2 | let pair (x : float#) = x, x
+                            ^
+Error: This expression has type "float#" but an expression was expected of type
+         "('a : value_or_null)"
+       The layout of float# is float64
+         because it is the unboxed version of the primitive type float.
+       But the layout of float# must be a value layout
+         because it's the type of a tuple element.

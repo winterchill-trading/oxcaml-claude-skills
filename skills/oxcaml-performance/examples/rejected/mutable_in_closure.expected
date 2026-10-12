@@ -1,0 +1,4 @@
+File "mutable_in_closure.ml", line 4, characters 22-32:
+4 |   List.iter (fun x -> s <- s + x) l;
+                          ^^^^^^^^^^
+Error: Mutable variable cannot be used inside a function (at file "mutable_in_closure.ml", line 4, characters 12-33).

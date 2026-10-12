@@ -1,0 +1,7 @@
+File "race_on_ref.ml", line 4, characters 79-80:
+4 |   let d = (Domain.Safe.spawn [@alert "-do_not_spawn_domains"]) (fun () -> incr r) in
+                                                                                   ^
+Error: This value is "contended"
+         because it is used inside the function at file "race_on_ref.ml", line 4, characters 63-81
+         which is expected to be "portable".
+       However, the highlighted expression is expected to be "uncontended".

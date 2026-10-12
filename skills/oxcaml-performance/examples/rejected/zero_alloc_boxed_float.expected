@@ -1,0 +1,9 @@
+File "zero_alloc_boxed_float.ml", line 2, characters 5-15:
+2 | let[@zero_alloc] spread_ratio (bid : float) (ask : float) = (ask -. bid) /. bid
+         ^^^^^^^^^^
+Error: Annotation check for zero_alloc failed on function Zero_alloc_boxed_float.spread_ratio.
+
+File "zero_alloc_boxed_float.ml", line 2, characters 60-79:
+2 | let[@zero_alloc] spread_ratio (bid : float) (ask : float) = (ask -. bid) /. bid
+                                                                ^^^^^^^^^^^^^^^^^^^
+Error: allocation of 16 bytes for float

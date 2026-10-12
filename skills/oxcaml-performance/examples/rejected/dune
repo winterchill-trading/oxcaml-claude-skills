@@ -1,0 +1,100 @@
+; Each file must fail to compile with the error recorded in <name>.expected.
+; Type errors use `ocamlopt -i`. zero_alloc errors come from the backend, so those files
+; are compiled with `-c` and the build-specific symbol names are stripped with sed.
+; `dune runtest` diffs the output; `dune promote` accepts a change.
+
+(rule
+ (deps unboxed_in_option.ml)
+ (action
+  (with-outputs-to
+   unboxed_in_option.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -color never -i unboxed_in_option.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff unboxed_in_option.expected unboxed_in_option.output)))
+
+(rule
+ (deps unboxed_in_tuple.ml)
+ (action
+  (with-outputs-to
+   unboxed_in_tuple.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -color never -i unboxed_in_tuple.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff unboxed_in_tuple.expected unboxed_in_tuple.output)))
+
+(rule
+ (deps unboxed_record_mutable.ml)
+ (action
+  (with-outputs-to
+   unboxed_record_mutable.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -color never -i unboxed_record_mutable.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff unboxed_record_mutable.expected unboxed_record_mutable.output)))
+
+(rule
+ (deps mutable_in_closure.ml)
+ (action
+  (with-outputs-to
+   mutable_in_closure.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -color never -i mutable_in_closure.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff mutable_in_closure.expected mutable_in_closure.output)))
+
+(rule
+ (deps race_on_ref.ml)
+ (action
+  (with-outputs-to
+   race_on_ref.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -color never -i race_on_ref.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff race_on_ref.expected race_on_ref.output)))
+
+(rule
+ (deps zero_alloc_boxed_float.ml)
+ (action
+  (with-outputs-to
+   zero_alloc_boxed_float.output
+   (system
+    "%{ocamlopt} -color never -c zero_alloc_boxed_float.ml 2>&1 | sed -e 's/ (caml[A-Za-z0-9_]*)//'; true"))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff zero_alloc_boxed_float.expected zero_alloc_boxed_float.output)))
+
+(rule
+ (deps zero_alloc_strict_raise.ml)
+ (action
+  (with-outputs-to
+   zero_alloc_strict_raise.output
+   (system
+    "%{ocamlopt} -color never -c zero_alloc_strict_raise.ml 2>&1 | sed -e 's/ (caml[A-Za-z0-9_]*)//'; true"))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff zero_alloc_strict_raise.expected zero_alloc_strict_raise.output)))
