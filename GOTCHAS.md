@@ -289,3 +289,13 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - `print_endline` inside `Command.basic` prints nothing when Async is opened because the scheduler never starts; use `Command.async`.
 - `open! Async` shadows `Sys`; use `Core.Sys.get_argv`. `Deferred.List.exists` takes no `~how`.
 - `Time_source.create ~now ()` plus `advance_directly` is a good fake clock for rotation tests.
+
+## Recorder (market-recorder)
+
+- `print_s` under `open! Async` in a `Command.basic` body goes to Async's stdout writer and never flushes; use `Core.print_s` or `Command.async`.
+- On the ox Async, `Clock_ns.with_timeout` returns `Clock_ns.Or_timeout.t`; annotate it.
+- `Command.async` takes `?behave_nicely_in_pipeline`, not `~behave_nicely_with_pipes`.
+- `Throttle.capacity_available` waits for one slot; `Throttle.prior_jobs_done` waits for all running jobs.
+- Concatenated zstd frames decode as one stream with `zstd -d`, so appending a frame to an existing `.zst` is a valid restart strategy; the OCaml binding's `get_decompressed_size` reads only the first frame.
+- `on_raw` callbacks carry no symbol, so per-symbol raw files need one websocket per symbol.
+- Fixed high ports (3510/3520/3530/9910) for e2e scripts avoid stray listeners on 3000/3001.
