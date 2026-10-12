@@ -27,3 +27,19 @@ jobs:
       - run: opam install . --deps-only --with-test
       - run: opam exec -- dune build @all
       - run: opam exec -- dune test
+  perf-examples:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skills/oxcaml-performance/examples
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: ocaml-variants.5.2.0+ox
+          opam-repositories: |
+            ox: https://github.com/oxcaml/opam-repository.git#afddc8337950dbc02863fe30ae58735a1cf2719f
+            default: https://github.com/ocaml/opam-repository.git
+      - run: opam install . --deps-only --with-test
+      - run: opam exec -- dune build @all
+      - run: opam exec -- dune test
