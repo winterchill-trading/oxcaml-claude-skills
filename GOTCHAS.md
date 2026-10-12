@@ -191,3 +191,24 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - **git.** `git rm` stages deletions; a later `git add a b && git commit` sweeps them into
   that commit. When splitting a refactor into small commits, commit by path
   (`git commit -m ... -- paths`) or keep deletions unstaged (`rm`, not `git rm`).
+
+### Protocol libraries round (Binance, Bybit, mm-core)
+
+- Never name a library module `Error` or `Info`: `open! Core` hides it even
+  inside the library. Use `Api_error`.
+- Bybit order and execution ids are UUID strings; an integer `Order_id` in a
+  shared core cannot represent them. Venue adapters must keep their own id type
+  and map to the core only where it is numeric.
+- Bybit sends timestamps as both ints and strings, and uses `""` for absent
+  values; write `Or_empty` and `As_string` codecs so round trips preserve shape.
+- Public and private pongs have different shapes on Bybit; decode both to one
+  variant.
+- Pushing after every commit cancels earlier CI runs via the concurrency
+  group; only the last push's run completes. Expected, not a failure.
+- A half-written `dune` file in any sibling repo breaks `dune build` for the
+  whole workspace. Build `@./all @./runtest` from inside your repo, or set up a
+  private workspace of symlinks for the repos you need.
+- Shared scratchpad helper scripts collide between agents; use per-agent
+  subdirectories.
+- Attribution trailers (`Claude-Session:` etc.) must be stripped when the
+  history has to look human; `git filter-branch --msg-filter` then force push.
