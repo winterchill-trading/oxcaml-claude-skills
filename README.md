@@ -18,6 +18,7 @@ Or copy a skill directory into `~/.claude/skills/`.
 |-------|----------------|
 | `skills/oxcaml-setup` | Creating and maintaining an OxCaml opam switch, CI, depexts |
 | `skills/oxcaml-modes` | Verified `local_`/`exclave_`/`global_`/`@ local`, `@ unique` and `borrow_` patterns with compiler error texts; `examples/` is a dune project built in CI |
+| `skills/oxcaml-performance` | Checklist before optimising, verified `or_null`, unboxed numbers and tuples, `float#` record fields, `let mutable`, `[@zero_alloc]`, inlining attributes, `-O3` and zero-allocation parsing, with measured words per call; `examples/` is built in CI |
 | `skills/async-http-websocket` | cohttp-async + async_websocket servers and clients, same-port upgrades, logging in tests |
 | `skills/janestreet-ocaml-style` | Writing Base/Core/Async code the Jane Street way, ppx_jane, expect tests |
 
