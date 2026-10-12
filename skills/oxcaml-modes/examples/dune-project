@@ -1,0 +1,16 @@
+(lang dune 3.17)
+(name oxcaml-modes-examples)
+(generate_opam_files true)
+(license MIT)
+(maintainers "winterchill-trading")
+(authors "winterchill-trading")
+(source (github winterchill-trading/oxcaml-claude-skills))
+(package
+ (name oxcaml-modes-examples)
+ (synopsis "Compiling OxCaml mode examples for the oxcaml-modes skill")
+ (allow_empty)
+ (depends
+  (ocaml (>= 5.2))
+  dune
+  core
+  ppx_jane))
