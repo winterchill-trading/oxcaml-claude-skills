@@ -212,3 +212,19 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
   subdirectories.
 - Attribution trailers (`Claude-Session:` etc.) must be stripped when the
   history has to look human; `git filter-branch --msg-filter` then force push.
+
+### Venue simulators round (binance-sim, bybit-sim)
+
+- Venue front ends need order attributes the neutral engine does not keep
+  (type, tif, reduce-only, cumulative fills, reject reason); keep a per-venue
+  `Orders` table fed by the engine's event stream exactly once, and drop
+  finished orders so noise flow does not grow it.
+- Binance depth sequencing (`U = pu + 1`) requires publishing events both
+  before and after each engine mutation, else `GET /depth` lags the book.
+- Flush pending orderbook deltas before registering a new websocket
+  subscriber, or its first message is a delta rather than the snapshot.
+- Async: `Bus.iter_exn` does not exist in the ox Async; use
+  `Bus.subscribe_permanently_exn`. `Cohttp.Code.meth` has no `equal`; use
+  `Poly.equal`.
+- `Clock_ns.every ~start ~stop:(Pipe.closed w)` is the idiom for per-connection
+  ping timers that stop on close.
