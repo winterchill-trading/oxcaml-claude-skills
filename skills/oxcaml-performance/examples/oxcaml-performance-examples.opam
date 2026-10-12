@@ -12,6 +12,7 @@ depends: [
   "ocaml" {>= "5.2"}
   "dune" {>= "3.17"}
   "core"
+  "core_kernel"
   "ppx_jane"
   "unboxed"
   "ocaml_intrinsics"

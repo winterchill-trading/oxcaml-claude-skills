@@ -13,6 +13,7 @@
   (ocaml (>= 5.2))
   dune
   core
+  core_kernel
   ppx_jane
   unboxed
   ocaml_intrinsics))
