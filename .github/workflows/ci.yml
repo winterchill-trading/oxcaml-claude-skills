@@ -11,3 +11,19 @@ jobs:
       - run: shellcheck scripts/*.sh
       - run: scripts/test-check-obj-magic.sh
       - run: scripts/check-obj-magic.sh
+  modes-examples:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skills/oxcaml-modes/examples
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: ocaml-variants.5.2.0+ox
+          opam-repositories: |
+            ox: https://github.com/oxcaml/opam-repository.git
+            default: https://github.com/ocaml/opam-repository.git
+      - run: opam install . --deps-only --with-test
+      - run: opam exec -- dune build @all
+      - run: opam exec -- dune test
