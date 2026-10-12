@@ -365,3 +365,4 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
   (here `core_unix` and `async` vanished and `core`'s sub-library directories were
   emptied while `core_kernel` rebuilt). Install packages only from the main session,
   never from parallel agents.
+- Kraken spot v2: symbols are `BTC/USD` (not XBT); the book checksum is a CRC32 over the venue's exact decimal strings, so parse with `Yojson.Raw` to keep digits; trim the book to the subscribed depth or checksums fail; resync needs `unsubscribe` then `subscribe`. Kraken Futures has no JSON ping (send a websocket ping frame every 30 s) and `next_funding_rate_time` is an absolute epoch-ms time despite the docs. A `/` in a symbol breaks path-based layouts; escape it.
