@@ -376,3 +376,22 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
   diffed against `f.expected`) works, but on GitHub Actions the compiler colours its
   output and the diff fails; pass `-color never`. A unique value passed to an `@ local`
   parameter without `borrow_` counts as a use, so consuming it later fails.
+
+## TradFi simulators (nyse-sim, cboe-sim, cme-sim)
+
+- A library module named `Session` cycles with `Equities_core.Session` when sibling modules open Equities_core; name it `Boe_session`. `open! Async` hides a library's own `Clock`; alias it in both `.ml` and `.mli`.
+- 64-bit bitfields do not fit OCaml ints (NYSE Pillar puts Side at bits 60-63); use `Int64`, and `Bigstring.set_int64_le` sign-extends bit 62. In MDP 3.0 group headers `numInGroup` is at offset 7.
+- On OxCaml `List.split_n` returns an unboxed tuple; use `List.take`/`List.drop`. `let%bind x : T = e` annotates `e`; write `let%bind (x : T) = e`. Partial applications passed as labelled arguments fail with "This value is local"; wrap in `fun`. Nested variant constructors inside a list need qualification.
+- TCP feed servers need `Writer.set_raise_when_consumer_leaves w false` and should watch `Writer.consumer_left`. Async `exit` returns a Deferred; CLI error paths use `Stdlib.exit`. Hung Async expect tests print nothing; append to a file to debug.
+- Read helpers that skip heartbeats need a fixed deadline, not a per-message timeout. Send the order ack before draining engine events so it precedes the execution reports. An engine without in-place quantity reduction needs an engine-id to public-id map so modifies keep the gateway and feed ids stable; publish a feed Delete only for ids previously published as Adds.
+- `dune fmt` at the root of a symlink workspace formats every linked repo; use `dune build @<repo>/fmt --auto-promote`. ocamlformat rewrites `(*@@X@@*)` marker comments. `cmd | head && git commit` commits on a failed build; set `pipefail`. Tee-ing an e2e script into `head` kills it with SIGPIPE before cleanup.
+- The public iLink 3 schema copy is `paulbeerkens/cme_Ilink3_simulator` (v8.5); the MDP3 templates download with curl from `ftp://ftp.cmegroup.com`.
+
+## Roadmap wave one
+
+- `[%message]` must start with a string before labelled fields; bare variables print without labels, so annotate `(x : t)`. An `[@@alert]` must also appear on the module type in the `.ml`. `type t [@@immediate]` in a signature needs `[@@warning "-unused-type-declaration"]`. For must-fail compile tests pass `-color never` and a literal file name.
+- core_bench shows 3 minor words for an empty benchmark; count allocations with `Gc.minor_words` in an expect test. `Time_ns.Stable.Span.V2` has no quickcheck functions; `Quickcheck.Shrinker.atomic` does not exist, use `Shrinker.empty ()`. Opening `Quickcheck.Generator.Let_syntax` at the top of a file shadows Async's `let%bind`.
+- Synthetic-clock live tests need `Time_source.advance_by_alarms_by` then `Scheduler.yield_until_no_jobs_remain`, and every component must stamp times from the same source. In lists like `[ name, fun t x -> ...; ... ]` an unparenthesised `fun` swallows the `;`.
+- Bigbuffer plus a reused bin_prot scratch buffer makes appends allocation-free. pyarrow skips `_`-prefixed names, so side files next to Parquet go in `_manifest/`. DuckDB `ASOF LEFT JOIN` and `epoch_ns` work on `TIMESTAMP_NS`.
+- `pgrep -f "opam install"` matches the shell running the loop; anchor the pattern. `git ls-remote <url> <sha>` returns nothing for a commit id. cAdvisor on Rancher Desktop needs `--containerd=/var/run/docker/containerd/containerd.sock` and `pid: host`; k3s's kubelet already exports container socket and FD metrics. `OCAMLRUNPARAM=v=0x400` prints nothing on the ox runtime; `o=80` saves about 10% RSS. rclone takes about 150 s to give up on a DNS failure, so alert on `upload_pending`, not failures. memtrace builds on the ox base image.
+- dune's cache does NOT share artifacts across different `DUNE_BUILD_DIR`s; `DUNE_CACHE=enabled` restores only into the same path. Core's deprecation text says `core_kernel.sys_unix` but the library is `core_unix.sys_unix`. OxCaml symbol names carry build numbers, so uprobes need wildcards; perf, bpftrace and magic-trace do not run on macOS.
