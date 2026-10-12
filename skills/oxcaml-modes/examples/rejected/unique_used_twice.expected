@@ -1,0 +1,8 @@
+File "unique_used_twice.ml", line 12, characters 10-11:
+12 |   consume t
+               ^
+Error: This value is used here, but it has already been used as unique at:
+File "unique_used_twice.ml", line 11, characters 18-19:
+11 |   let _ = consume t in
+                       ^
+  

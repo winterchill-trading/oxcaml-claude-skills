@@ -1,0 +1,100 @@
+; Each file must fail to type-check with the error recorded in <name>.expected.
+; `dune runtest` diffs the compiler's output against it; `dune promote` accepts a change.
+
+(rule
+ (deps unique_used_twice.ml)
+ (action
+  (with-outputs-to
+   unique_used_twice.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -i unique_used_twice.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff unique_used_twice.expected unique_used_twice.output)))
+
+(rule
+ (deps aliased_as_unique.ml)
+ (action
+  (with-outputs-to
+   aliased_as_unique.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -i aliased_as_unique.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff aliased_as_unique.expected aliased_as_unique.output)))
+
+(rule
+ (deps borrow_escapes.ml)
+ (action
+  (with-outputs-to
+   borrow_escapes.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -i borrow_escapes.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff borrow_escapes.expected borrow_escapes.output)))
+
+(rule
+ (deps consumed_while_borrowed.ml)
+ (action
+  (with-outputs-to
+   consumed_while_borrowed.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -i consumed_while_borrowed.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff consumed_while_borrowed.expected consumed_while_borrowed.output)))
+
+(rule
+ (deps local_escapes.ml)
+ (action
+  (with-outputs-to
+   local_escapes.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -i local_escapes.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff local_escapes.expected local_escapes.output)))
+
+(rule
+ (deps local_tail_call.ml)
+ (action
+  (with-outputs-to
+   local_tail_call.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -i local_tail_call.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff local_tail_call.expected local_tail_call.output)))
+
+(rule
+ (deps read_then_consume.ml)
+ (action
+  (with-outputs-to
+   read_then_consume.output
+   (with-accepted-exit-codes
+    2
+    (run %{ocamlopt} -i read_then_consume.ml)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff read_then_consume.expected read_then_consume.output)))

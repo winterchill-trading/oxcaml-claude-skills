@@ -1,0 +1,8 @@
+File "consumed_while_borrowed.ml", line 9, characters 72-73:
+9 | let both (t @ unique) = (fun (u @ local) -> u.x) (borrow_ t) + (consume t).x
+                                                                            ^
+Error: This value is used here as unique, but it is also being borrowed at:
+File "consumed_while_borrowed.ml", line 9, characters 49-60:
+9 | let both (t @ unique) = (fun (u @ local) -> u.x) (borrow_ t) + (consume t).x
+                                                     ^^^^^^^^^^^
+  

@@ -1,0 +1,4 @@
+File "local_escapes.ml", line 2, characters 27-28:
+2 | let keep (s @ local) = ref s
+                               ^
+Error: This value is "local" to the parent region but is expected to be "global".

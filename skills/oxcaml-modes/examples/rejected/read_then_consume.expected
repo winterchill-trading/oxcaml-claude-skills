@@ -1,0 +1,8 @@
+File "read_then_consume.ml", line 14, characters 13-14:
+14 |   n, consume t
+                  ^
+Error: This value is used here as unique, but it has already been used at:
+File "read_then_consume.ml", line 13, characters 14-15:
+13 |   let n = get t in
+                   ^
+  

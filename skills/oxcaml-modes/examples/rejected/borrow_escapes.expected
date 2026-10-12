@@ -1,0 +1,5 @@
+File "borrow_escapes.ml", line 11, characters 7-18:
+11 |   read (borrow_ t)
+            ^^^^^^^^^^^
+Error: This value is "local" because it is borrowed.
+       However, the highlighted expression is expected to be "global".

@@ -1,0 +1,5 @@
+File "aliased_as_unique.ml", line 10, characters 22-28:
+10 | let bump () = consume shared
+                           ^^^^^^
+Error: This value is aliased but used as unique.
+Hint: This value comes from outside the current module or class.
