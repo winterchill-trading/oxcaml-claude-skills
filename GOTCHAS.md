@@ -407,3 +407,11 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - `Hashtbl.sum` does not exist; `List.sum (module Int64)` fails under local mode, convert to Int. Under `set -euo pipefail`, `x=$(find missing | head -1)` aborts; add `|| true`. `export DUNE_BUILD_DIR` does not persist between agent shell calls.
 - Binance depth diffs decode at about 6 minor words per byte with Yojson; JSON decoding is about 60% of the recorder's per-frame cost.
 - hl-sim: `Writer.transfer` waits per batch, so a client that stops reading backs up the server's outgoing pipe; bound it with `Pipe.length` and close with `Writer.close ~force_close:Deferred.unit`. A client that never reads is `Websocket.create` over `Reader.of_pipe` of an empty pipe. Polling the connection count is racy on Linux; count drops instead. Dune's cache in setup-ocaml saved 479 bytes and cost 100 s: CI time is opam building dependencies (about 15 min), so cache the opam switch keyed on the pins instead.
+
+## Roadmap wave three
+
+- setup-ocaml v3 creates its switch at `$GITHUB_WORKSPACE/_opam`; that directory is what to cache after `opam install`, keyed on OS, image, compiler, ox commit and every pin's resolved commit. Its own cache key includes the repository URLs, so adding `#commit` to the ox URL forces a one-time compiler rebuild of about 16 minutes per repo. With a warm switch hl-sim CI drops from 17 minutes to under 2; a cached switch is 2.5 GB against a 10 GB per-repo cache.
+- `opam pin add --no-action` to a new commit does not rebuild an installed package; `opam reinstall <pkg>` is needed. A composite action shows as one step in the run summary, so per-step timings come from job log timestamps.
+- Adding a constructor to a shared wire type breaks exhaustive matches in every dependent repo at once. Route new data through a separate module reachable from an existing `Unknown` branch, and only add the real constructor after dependents carry wildcards.
+- A module named like a stdlib or Core one (for example `Asset_ctx` next to `Ctx`) shadows silently inside `open!`; check `dune build @check` of dependents, not only the library.
+- Feed fixtures: capture one raw frame per message kind with `-on_raw`, store them under `fixtures/` and run them through the `Normalizer.S` adapter in an expect test; the inline test runner needs `(deps (glob_files fixtures/*))`.
