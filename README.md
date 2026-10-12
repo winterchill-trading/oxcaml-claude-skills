@@ -1,3 +1,8 @@
+| `parquet` | Pure OCaml Apache Parquet writer: thrift compact metadata, PLAIN encoding, zstd pages, verified with DuckDB |
+| `market-data` | Normalized market data types (stable Bin_prot), event log, candle aggregation, `Feed.S`, replay, Parquet sink and day close, DuckDB query CLI |
+| `market-recorder` | Records the venue live feeds to Tardis-style raw minute files and event logs, uploads closed files with a configurable command |
+| `infra` | OxCaml base image, service image, Compose, Helm chart, local Rancher Desktop and AWS notes |
+| `specs` | Architecture, per-repo pages, design docs, ADRs and the service map; read before touching a repo |
 # oxcaml-claude-skills
 
 Claude Code skills, gotchas and workarounds collected while building the
