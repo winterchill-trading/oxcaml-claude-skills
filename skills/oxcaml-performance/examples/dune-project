@@ -1,0 +1,18 @@
+(lang dune 3.17)
+(name oxcaml-performance-examples)
+(generate_opam_files true)
+(license MIT)
+(maintainers "winterchill-trading")
+(authors "winterchill-trading")
+(source (github winterchill-trading/oxcaml-claude-skills))
+(package
+ (name oxcaml-performance-examples)
+ (synopsis "Compiling OxCaml performance examples for the oxcaml-performance skill")
+ (allow_empty)
+ (depends
+  (ocaml (>= 5.2))
+  dune
+  core
+  ppx_jane
+  unboxed
+  ocaml_intrinsics))

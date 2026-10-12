@@ -1,0 +1,11 @@
+(library
+ (name perf_examples)
+ (libraries
+  core
+  core_kernel.iobuf
+  ocaml_intrinsics
+  stdlib_stable
+  stdlib_upstream_compatible
+  unboxed.float_u)
+ (preprocess
+  (pps ppx_jane)))
