@@ -84,6 +84,9 @@ engine package comes after `order-book`):
 | `market-recorder` | Records the venue live feeds to Tardis-style raw minute files and event logs, uploads closed files with a configurable command |
 | `infra` | OxCaml base image, service image, Compose, Helm chart, local Rancher Desktop and AWS notes |
 | `specs` | Architecture, per-repo pages, design docs, ADRs and the service map; read before touching a repo |
+| `okx-feed`, `coinbase-feed`, `kraken-feed`, `deribit-feed`, `bitget-feed` | Read-only public market data feeds (trades, bbo, l2, funding) normalized to `market-data`, verified against the live venues |
+| `equities-core` | US equities, options and futures semantics for the TradFi simulators: sessions, ticks, lots, symbols, auctions, order types, halts, fees; NYSE, Cboe and CME spec summaries |
+| `nyse-sim`, `cboe-sim`, `cme-sim` | Free local simulators speaking NYSE Pillar/XDP, Cboe BOE/PITCH and CME iLink 3/MDP 3.0 over TCP, driven by noise traders (in progress) |
 
 Local layout: all checkouts side by side under one directory holding an
 untracked `dune-workspace` and `dune-project` (`(lang dune 3.17)`), so dune
