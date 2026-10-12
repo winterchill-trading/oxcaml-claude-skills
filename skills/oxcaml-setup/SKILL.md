@@ -5,6 +5,35 @@ description: Create and maintain an OxCaml (Jane Street OCaml) opam switch local
 
 # OxCaml setup
 
+## Outcomes
+
+1. Create the `5.2.0+ox` switch and install the Jane Street stack without
+   picking a stub or a broken package.
+2. Write a GitHub Actions workflow that builds an OxCaml repo and its sibling
+   pins in dependency order.
+3. Configure inline expect tests so they run under the ox `ppx_expect`.
+4. Build several sibling repos together locally without opam pins.
+
+## Reference modules (org repos)
+
+| File | Shows |
+|------|-------|
+| `hl-protocol/.github/workflows/ci.yml` | setup-ocaml with the `ox` repository, sibling pins, concurrency group |
+| `exchange-core/.github/workflows/ci.yml` | Two packages from one repo installed in stages |
+| `hl-protocol/test/dune` | `-source-tree-root .` inline-tests flag |
+| `infra/images/oxcaml-base/Dockerfile` | Switch build pinned to an `ox` repository commit (`OX_REPO_COMMIT`) |
+| `oxcaml-claude-skills/skills/oxcaml-modes/examples/dune-project` | Minimal project with generated opam file, built in CI |
+
+## Exercises
+
+1. Scaffold a new repo with a library and an expect test; run `dune test`
+   without the `-source-tree-root .` flag and record the error
+   (expected: `Sys_error "../foo.ml: No such file or directory"`), then fix it.
+2. Write the CI workflow for a repo depending on `order-book`; list the pins it
+   needs in order (expected: `fixed-decimal`, `exchange-core`, `order-book`).
+3. With `opam install --dry-run async_websocket`, check which version opam
+   would pick and say whether it is the stub (v0.13.0) or the ox preview.
+
 ## Local switch
 
 ```sh
