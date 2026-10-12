@@ -5,6 +5,33 @@ description: Build HTTP and websocket servers/clients with cohttp-async and asyn
 
 # cohttp-async + async_websocket (verified on the ox switch)
 
+## Outcomes
+
+1. Serve a JSON API and a websocket feed on one port, testable on port 0.
+2. Write a websocket client: handshake over `Tcp.connect`, frames via
+   `Websocket.create ~role:Client`, ping watchdog, reconnect with backoff.
+3. Test both ends in-process with expect tests that stay deterministic
+   (no logging to stdout, no wall-clock timing in the output).
+
+## Reference modules (org repos)
+
+| File | Shows |
+|------|-------|
+| `hl-sim/lib/server.ml` | `create_expert` with same-port websocket upgrade and JSON routes |
+| `hl-sim/test/test_server.ml` | Server driven over real HTTP and websocket in expect tests |
+| `venue-net/src/ws_client.mli` | Client contract: reconnect, backoff, watchdog, `Time_source` |
+| `venue-net/test/test_ws_loopback.ml` | In-process websocket server for client tests |
+| `hl-client/lib/ws.ml` | Venue client on top of `venue-net`, subscriptions resent on reconnect |
+
+## Exercises
+
+1. Add a `GET /health` route to a copy of `hl-sim/lib/server.ml` and test it on
+   port 0 (expected: `200` and a body printed by the expect test).
+2. In the `venue-net` loopback test, make the server drop the connection after the
+   first frame and show that the client reconnects and `reconnects t` is 1.
+3. Explain why `Http.Response.make`, not `Cohttp.Response.make`, is used for the
+   101 response (answer: the latter adds `transfer-encoding: chunked`).
+
 ## HTTP server with websocket upgrade on the same port
 
 ```ocaml
