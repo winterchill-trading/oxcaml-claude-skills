@@ -323,3 +323,45 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - `cmd | grep -v ... && git commit` skips the commit when grep filters every line; never put a filtering grep in an `&&` chain. A `;` chain once pushed a non-compiling commit. In zsh `echo ======` fails with "not found".
 - GitHub pushes can fail transiently with `remote: fatal error in commit_refs` or `[remote rejected] (failure)`; retry. A fresh repo's first CI run can fail on "Bad checksum" for the compiler tarball; rerun.
 - `Time_ns.Span.to_int63_ns` returns `Int63.t`; divisions need `Int63.( / )`. `Time_ns.Alternate_sexp` keeps sexps in UTC and avoids time-zone diffs in expect tests.
+
+## Unix libraries, dune cache and profiling (skills round)
+
+- **`Core.X` moved to `X_unix`.** Core has no Unix-dependent code; the old names are
+  deprecated stubs. Library names on the ox switch (`core_unix` 0.18 preview):
+  `Command.run` is `Command_unix.run` (`core_unix.command_unix`); `Core.Unix` is
+  `Core_unix` (`core_unix`); `Sys.command`, `Sys.readdir`, `Sys.remove`,
+  `Sys.executable_name` are `Sys_unix` (`core_unix.sys_unix`); `Filename.temp_dir` is
+  `Filename_unix` (`core_unix.filename_unix`); zone-aware `Time_ns` is `Time_ns_unix`
+  (`core_unix.time_ns_unix`), `Time_float_unix`, `Date_unix`; `Bigstring_unix`
+  (`core_unix.bigstring_unix`), `Iobuf_unix`, `Signal_unix`, `Linux_ext`. The
+  deprecation text on `Core.Sys.*` says "available from opam as `core_kernel.sys_unix`",
+  which is wrong for dune: the library is `core_unix.sys_unix`.
+- **`Bigstring_unix.write ?min_len`.** With the default `min_len = 0` it is one
+  `write()` call: it can return a short count and does not retry on `EINTR`. Pass
+  `~min_len:len` to loop until everything is written, or use `really_write` (unit
+  result). `read ?min_len` is the same on the read side. Both raise `Invalid_argument` if
+  `min_len > len` and `IOError` if the minimum is not reached.
+- **dune's shared cache does not serve per-agent build directories.** dune 3.22's
+  default (`enabled-except-user-rules`) restored nothing here: after `rm -rf _build` the
+  same library recompiled every module, and `dune cache size` stays 0B. With
+  `DUNE_CACHE=enabled` (or `--cache=enabled`) a rebuild into the *same* build directory
+  path is fully restored, but a different `DUNE_BUILD_DIR` recompiles everything, so
+  `_build-<repo>` directories per agent never share artifacts. Budget a cold build per
+  agent directory; reuse one `DUNE_BUILD_DIR` per repo across sessions instead of
+  creating new ones.
+- **perf, bpftrace and magic-trace.** None runs on macOS: there is no `perf` or
+  `bpftrace`, `dtrace` is limited by SIP, and Apple silicon has no Intel Processor Trace.
+  Profile on Linux. magic-trace needs an Intel CPU with PT exposed, which means bare
+  metal or a VM that passes PT through; GitHub runners, Rancher Desktop VMs on a Mac
+  and most cloud instances do not. `perf` and bpftrace uprobes inside a container need
+  `--cap-add SYS_ADMIN` (or `CAP_PERFMON` plus `CAP_BPF`) and a host
+  `kernel.perf_event_paranoid` of 1 or lower. OxCaml symbols carry build stamps,
+  e.g. `camlMarket_recorder__Raw_writer__append_32_100_code`; the numbers change between
+  builds, so attach with a glob (`uprobe:/app/bin/market-recorder:camlMarket_recorder__Raw_writer__append_*_code`).
+- **Syscall tracing an Async program**: most `strace` output is the scheduler's
+  `epoll_wait`/`futex`/`timerfd` noise; filter with `strace -f -e trace=network,read,write`
+  (or a viewer such as strace-ui) before looking for socket problems.
+- The shared opam switch can be broken mid-session by another agent's `opam install`
+  (here `core_unix` and `async` vanished and `core`'s sub-library directories were
+  emptied while `core_kernel` rebuilt). Install packages only from the main session,
+  never from parallel agents.
