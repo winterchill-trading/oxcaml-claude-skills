@@ -255,3 +255,15 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - Bybit: by-id order lookup on linear needs `symbol` or `settleCoin`; the
   private stream must wait for the auth ack before subscribing.
 - Exception sexps embed the source path; keep them out of expect output.
+
+## Writing Parquet from pure OCaml (repo `parquet`)
+
+- Thrift compact field headers carry the field id *delta* from the previous field, not the id; nested structs restart the delta at 0. Bool fields put their value in the type nibble and have no body. Union types (`LogicalType`, `TimeUnit`) encode as a struct with exactly one empty-struct field.
+- `TIMESTAMP(NANOS, isAdjustedToUTC=true)` makes DuckDB read the column as `TIMESTAMP WITH TIME ZONE`, which is microsecond-only and silently drops nanoseconds. Default to `isAdjustedToUTC=false` to get `TIMESTAMP_NS`.
+- DuckDB rejects a whole file if any STRING value is invalid UTF-8; use `bytes` for opaque payloads. Without `ORDER BY`, rows across row groups come back in any order, so tests should read with `file_row_number = true` and order by it.
+- The `zstd` opam binding (0.4, ctypes based) builds on the ox switch. Compress only the page body; the page header stays uncompressed and records both sizes.
+- `(*` inside an OCaml comment opens a nested comment, so `count(*)` in a comment breaks the build.
+- Inside `Int64.( ... )`, literals and `*` become int64 operations.
+- `Expect_test_helpers_core` is not on the ox switch; use `Or_error.try_with` and print.
+- A repo with no sibling dependencies can build with `dune build --root .` and is then immune to another agent's half-written sibling `dune` files.
+- On GitHub Actions, pushing while the first run is still building the compiler cancels it; let that first run finish so the compiler cache exists. `gh run rerun --failed` is the fix for transient opam download errors.
