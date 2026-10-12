@@ -51,6 +51,74 @@ capturing `f` passed in tail position fails with
 `... expected to be "local" to the parent region or "global" because it is an
 argument in a tail call`; add `[@nontail]` to the call.
 
+## Tail calls with local arguments
+
+A value allocated in the current region cannot be passed to a call in tail
+position, because the tail call would outlive the region:
+
+```
+This value is "local"
+but is expected to be "local" to the parent region or "global"
+  because it is an argument in a tail call.
+```
+
+Add `[@nontail]` to the call (the recursion then uses stack), fold instead of
+recursing, or allocate with `exclave_` into the caller's region.
+
+## Uniqueness: `@ unique`
+
+A unique value has no other live reference; a function taking it `@ unique`
+consumes it and may update it in place, returning it `@ unique` again.
+
+```ocaml
+val create : unit -> counter @ unique
+val incr : counter @ unique -> counter @ unique
+val get : counter @ local -> int            (* reads, does not consume *)
+
+let rec go (c @ unique) i = if i = 0 then finish c else go (incr c) (i - 1)
+```
+
+No extension flag is needed on `5.2.0+ox`. Errors:
+
+- Consumed twice: `This value is used here, but it has already been used as
+  unique at: ...`
+- A top-level or captured value is aliased: `This value is aliased but used as
+  unique. Hint: This value comes from outside the current module or class.`
+- Passing a unique value to an `@ local` parameter is still a use; consuming it
+  afterwards fails with `This value is used here as unique, but it has already
+  been used at: ...`. Borrow instead (below).
+- A tuple returned without `@ unique` makes its elements aliased:
+  `This value is "aliased" because it is an element of the tuple ...`. Write
+  `-> int * counter @ unique` in the `.mli` so callers can destructure it.
+
+## Borrowing: `borrow_`
+
+`borrow_ x` lends a unique `x` as a local value for one call without consuming
+it, so `x` can be consumed afterwards:
+
+```ocaml
+let peek_then_incr (c @ unique) =
+  let seen = get (borrow_ c) in
+  seen, incr c
+```
+
+- The borrow is local: storing it on the heap fails with `This value is "local"
+  because it is borrowed. However, the highlighted expression is expected to be
+  "global".`
+- Borrowing and consuming in one expression fails with `This value is used here
+  as unique, but it is also being borrowed at: ...`; finish the borrow in a
+  `let` first.
+
+## Compiling examples
+
+`examples/` is a dune project (built in CI) with every pattern above:
+`src/local_examples.ml`, `src/unique_examples.ml`, `src/borrow_examples.ml`,
+expect tests in `test/` (one shows a loop of local records allocating 0 minor
+heap words against 6000 for the heap version), and `rejected/`, where each file
+must fail to compile with the error pinned in its `.expected` file. When the
+compiler changes an error text, `dune runtest` shows the diff; update the text
+here when promoting it.
+
 ## Tooling
 
 - `ocamlformat` with `profile = janestreet` preserves all mode syntax.
