@@ -32,9 +32,10 @@ After reading this skill a session should be able to:
 
 1. In `fixed-decimal`, write a test that `Price.t` and `Size.t` do not unify
    (expected: a type error naming both types when the test is uncommented).
-2. Add `Fixed_decimal.abs` to the `.mli` first, build to see the error, then
+2. Add `clamp : t -> min:t -> max:t -> t` to `Fixed_decimal.S` in the `.mli`
+   first, build to see the "value required but not provided" error, then
    implement it with an expect test and a quickcheck property
-   (`abs x >= zero`, `abs (neg x) = abs x`).
+   (`min <= clamp x ~min ~max <= max`, and `clamp x = x` when already in range).
 3. Take any quickcheck property, break the function on purpose, and pin the
    shrunk counterexample in `~examples`; revert the break and keep the example.
 
