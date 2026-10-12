@@ -28,6 +28,29 @@ Or copy a skill directory into `~/.claude/skills/`.
 
 `GOTCHAS.md` is the running log; entries are promoted into skills once stable.
 
+## Scripts
+
+`scripts/check-obj-magic.sh [root]` fails when `Obj.magic`, `Obj.repr` or `Obj.obj`
+appears in a `.ml`/`.mli` file (tracked or untracked, `_build*/` and `_opam/` skipped)
+that is not listed in `<root>/.obj-magic-allowlist`. The allowlist takes one path or
+shell glob per line, relative to the root; `#` starts a comment. Put the reason for
+each entry next to it. Every org repo passes with no allowlist today.
+
+To enforce it in another repo, add a job to its workflow (no OCaml needed, it runs in
+seconds):
+
+```yaml
+  obj-magic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          curl -fsSL https://raw.githubusercontent.com/winterchill-trading/oxcaml-claude-skills/main/scripts/check-obj-magic.sh \
+            | bash -s -- .
+```
+
+`scripts/test-check-obj-magic.sh` is its test; CI runs both plus shellcheck.
+
 ## Ecosystem map
 
 Repos in this org, dependency order (each builds on the ones above; `exchange-core`'s
