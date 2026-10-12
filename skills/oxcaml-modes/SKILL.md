@@ -1,11 +1,43 @@
 ---
 name: oxcaml-modes
-description: Use OxCaml's local_/exclave_/global_ stack-allocation modes and @ local callbacks correctly, with the exact compiler errors and fixes. Use when writing or debugging OxCaml code that mentions local_, exclave_, global_, @ local, [@nontail], or "This value is local" errors.
+description: Use OxCaml's local_/exclave_/global_ stack-allocation modes, @ local callbacks, @ unique values and borrow_ correctly, with the exact compiler errors and fixes. Use when writing or debugging OxCaml code that mentions local_, exclave_, global_, @ local, @ unique, borrow_, [@nontail], or "This value is local" / "used as unique" errors.
 ---
 
 # OxCaml modes in practice
 
 Verified on `5.2.0+ox` with Core/Base from the ox opam repository.
+
+## Outcomes
+
+1. Stack-allocate a record in a hot loop and prove it allocates nothing on the
+   heap (`Gc.minor_words` delta of 0 in an expect test).
+2. Return a local record from a (recursive) function with `exclave_`.
+3. Take and pass `@ local` callbacks, with `[@nontail]` where needed.
+4. Thread a `@ unique` value through in-place updates, reading it with
+   `borrow_` between steps.
+5. Read a mode error and name the fix from this page.
+
+## Reference modules (org repos)
+
+| File | Shows |
+|------|-------|
+| `order-book/lib/order_book.ml` | `local_` taker record, recursive `exclave_ sweep`, `global_` fields, `[@nontail]` |
+| `order-book/lib/order_book.mli` | `val iter : t -> f:(Resting_order.t -> unit) @ local -> unit` |
+| `examples/src/local_examples.ml` | Local arguments, `exclave_` results, local closures |
+| `examples/src/unique_examples.ml`, `examples/src/borrow_examples.ml` | `@ unique` threading and `borrow_` |
+| `examples/rejected/` | One file per compiler error, with the pinned error text |
+
+## Exercises
+
+1. Make `Local_examples.manhattan` take its argument without `@ local` in the
+   `.mli` only; predict and then read the error (expected: `Values do not
+   match`).
+2. Write `Unique_examples.reset : counter @ unique -> counter @ unique` and a
+   test that reads it through `borrow_` before and after.
+3. Remove `[@nontail]` from `Local_examples.sum_by` and explain the error.
+4. Copy a file from `rejected/` and fix it; the fix must compile and the
+   original must still be rejected.
+
 
 ## Stack-allocating a record
 
