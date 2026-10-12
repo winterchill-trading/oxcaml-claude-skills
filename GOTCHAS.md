@@ -239,3 +239,19 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
   with `Time_ns.Span.of_span_float_round_nearest`.
 - `dune fmt` does not format `dune` files; edit library lists by hand carefully.
 - When a repo gains a sibling dependency, put the CI pin in the same commit.
+
+### Venue clients round (binance-client, bybit-client)
+
+- OxCaml rejects `exception E of t [@@deriving sexp_of]` when a field's sexp
+  converter is not portable; carry a tagged sexp or an int code instead.
+- `Uri` re-encodes query strings (`%3A` becomes `:`); sign the query in the
+  form `Uri` actually sends, or signatures fail on the real venue.
+- `Clock_ns.with_timeout` around `Pipe.read` leaves the read pending and it
+  swallows the next value; wait on `Pipe.values_available` then `read_now`.
+- Read websocket frames with your own `iter_without_pushback`; a
+  `Pipe.filter_map` stage stalls acks when nobody reads downstream.
+- `dune promote` overwrites test edits made after the failing run; promote
+  first. Filtering build output with `grep '^[-+] '` hides compile errors.
+- Bybit: by-id order lookup on linear needs `symbol` or `settleCoin`; the
+  private stream must wait for the auth ack before subscribing.
+- Exception sexps embed the source path; keep them out of expect output.
