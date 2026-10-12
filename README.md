@@ -1,7 +1,7 @@
 # oxcaml-claude-skills
 
 Claude Code skills, gotchas and workarounds collected while building the
-`hl-protocol` / `hl-sim` / `hl-mm` projects with [OxCaml](https://oxcaml.org)
+`exchange-core` / `hl-protocol` / `hl-sim` / `hl-mm` projects with [OxCaml](https://oxcaml.org)
 and the Jane Street library stack.
 
 Install as a plugin:
@@ -25,15 +25,17 @@ Or copy a skill directory into `~/.claude/skills/`.
 
 ## Ecosystem map
 
-Repos in this org, dependency order (each builds on the ones above):
+Repos in this org, dependency order (each builds on the ones above; `exchange-core`'s
+engine package comes after `order-book`):
 
 | Repo | What |
 |------|------|
 | `fixed-decimal` | Fixed-point decimals, generative functor for distinct Price/Size/Usd types, mixed products |
-| `hl-protocol` | Hyperliquid wire types and JSON codecs (info, exchange, websocket) |
-| `order-book` | Price-time priority book and matching with OxCaml stack allocation in the hot loop |
+| `exchange-core` | Venue-neutral primitives and views (package `exchange-core`), and the engine: clearinghouse, margin, funding, liquidation, noise traders (package `exchange-core-engine`, built on `order-book`) |
+| `hl-protocol` | Hyperliquid wire types and JSON codecs (info, exchange, websocket); re-exports the exchange-core primitives |
+| `order-book` | Price-time priority book and matching with OxCaml stack allocation in the hot loop; uses exchange-core primitives |
 | `hl-client` | Async HTTP + websocket client; read-only parts work against real Hyperliquid |
-| `hl-sim` | Exchange simulator: clearinghouse, margin, funding, liquidation, noise traders, HTTP/WS server |
+| `hl-sim` | Hyperliquid adapter over the exchange-core engine: asset indices, wire types, error wording, HTTP/WS server |
 | `hl-mm` | Market maker: Avellaneda-Stoikov-lite quoter, reconciler, risk, live loop, e2e script |
 
 Local layout: all checkouts side by side under one directory holding an
