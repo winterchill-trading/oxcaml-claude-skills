@@ -415,3 +415,6 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - Adding a constructor to a shared wire type breaks exhaustive matches in every dependent repo at once. Route new data through a separate module reachable from an existing `Unknown` branch, and only add the real constructor after dependents carry wildcards.
 - A module named like a stdlib or Core one (for example `Asset_ctx` next to `Ctx`) shadows silently inside `open!`; check `dune build @check` of dependents, not only the library.
 - Feed fixtures: capture one raw frame per message kind with `-on_raw`, store them under `fixtures/` and run them through the `Normalizer.S` adapter in an expect test; the inline test runner needs `(deps (glob_files fixtures/*))`.
+- `ubuntu-latest` moves to Ubuntu 26 on 2026-10-19. The `ox-setup` cache key includes the runner image, so every repo takes one full cache miss (17 to 33 minutes) that week; pin `ubuntu-24.04` if that matters.
+- markdownlint's line-length rule allows long reference-link definitions, so commit links in long lists are best written reference-style.
+- `rebuild-norm` only rebuilds for venues whose normalizer is linked into the binary that runs it; the market-data binary links none, so only feed binaries with a `Normalizer.S` adapter can rebuild their own files.
