@@ -279,3 +279,13 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - Hyperliquid sends a backlog of recent trades on subscribe with `exch_ts` well before `recv_ts`; every `l2Book` message is a full snapshot; `activeAssetCtx` has no venue timestamp.
 - Bybit `orderbook.N` deltas before the first snapshot must be dropped; a sequence gap means resubscribe.
 - In `Command.Param`, `optional_with_default` takes the parsed value as default, not the string form.
+
+## Parquet sink and DuckDB queries (market-data)
+
+- Multiplying two `DECIMAL(18,8)` columns in DuckDB overflows ("Overflow in multiplication of DECIMAL(18)"); cast to DOUBLE or DECIMAL(38,16) first.
+- DuckDB refuses `CREATE VIEW` over a `read_parquet` glob that matches no files; create views only for tables that have files.
+- Write Parquet to `<path>.tmp` and rename on close so globs never see a partial file.
+- A library module that opens Async cannot refer to its own `Stream` module; alias it before the open.
+- `print_endline` inside `Command.basic` prints nothing when Async is opened because the scheduler never starts; use `Command.async`.
+- `open! Async` shadows `Sys`; use `Core.Sys.get_argv`. `Deferred.List.exists` takes no `~how`.
+- `Time_source.create ~now ()` plus `advance_directly` is a good fake clock for rotation tests.
