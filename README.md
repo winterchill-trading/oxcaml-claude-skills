@@ -1,8 +1,3 @@
-| `parquet` | Pure OCaml Apache Parquet writer: thrift compact metadata, PLAIN encoding, zstd pages, verified with DuckDB |
-| `market-data` | Normalized market data types (stable Bin_prot), event log, candle aggregation, `Feed.S`, replay, Parquet sink and day close, DuckDB query CLI |
-| `market-recorder` | Records the venue live feeds to Tardis-style raw minute files and event logs, uploads closed files with a configurable command |
-| `infra` | OxCaml base image, service image, Compose, Helm chart, local Rancher Desktop and AWS notes |
-| `specs` | Architecture, per-repo pages, design docs, ADRs and the service map; read before touching a repo |
 # oxcaml-claude-skills
 
 Claude Code skills, gotchas and workarounds collected while building the
@@ -84,6 +79,11 @@ engine package comes after `order-book`):
 | `bybit-sim` | Bybit v5 simulator over the exchange-core engine: REST, public and private streams |
 | `bybit-client` | Async Bybit v5 client (REST, local book, public and private streams) and the mm-core venue adapter |
 | `market-maker` | One `market-maker` binary running mm-core on Hyperliquid, Binance or Bybit (or their simulators), with e2e scripts per venue |
+| `parquet` | Pure OCaml Apache Parquet writer: thrift compact metadata, PLAIN encoding, zstd pages, verified with DuckDB |
+| `market-data` | Normalized market data types (stable Bin_prot), event log, candle aggregation, `Feed.S`, replay, Parquet sink and day close, DuckDB query CLI |
+| `market-recorder` | Records the venue live feeds to Tardis-style raw minute files and event logs, uploads closed files with a configurable command |
+| `infra` | OxCaml base image, service image, Compose, Helm chart, local Rancher Desktop and AWS notes |
+| `specs` | Architecture, per-repo pages, design docs, ADRs and the service map; read before touching a repo |
 
 Local layout: all checkouts side by side under one directory holding an
 untracked `dune-workspace` and `dune-project` (`(lang dune 3.17)`), so dune
