@@ -19,3 +19,6 @@ description: Write OCaml in the Jane Street style using Base/Core/Async and ppx_
   block. Entry point via `Command.async`.
 - `.ocamlformat` with `profile = janestreet`; run `dune fmt` before committing.
 - Errors: `Or_error.t` for recoverable, `raise_s [%message ...]` for bugs.
+- No `Obj.magic`, `Obj.repr` or `Obj.obj`: they undo every type guarantee the
+  rest of these rules buy. `scripts/check-obj-magic.sh` enforces this in CI;
+  a genuine need goes in `.obj-magic-allowlist` with the reason beside it.
