@@ -34,9 +34,18 @@ engine package comes after `order-book`):
 | `exchange-core` | Venue-neutral primitives and views (package `exchange-core`), and the engine: clearinghouse, margin, funding, liquidation, noise traders (package `exchange-core-engine`, built on `order-book`) |
 | `hl-protocol` | Hyperliquid wire types and JSON codecs (info, exchange, websocket); re-exports the exchange-core primitives |
 | `order-book` | Price-time priority book and matching with OxCaml stack allocation in the hot loop; uses exchange-core primitives |
+| `venue-net` | Venue-independent Async HTTP and websocket plumbing: reconnect with backoff, ping watchdog, resubscription |
 | `hl-client` | Async HTTP + websocket client; read-only parts work against real Hyperliquid |
 | `hl-sim` | Hyperliquid adapter over the exchange-core engine: asset indices, wire types, error wording, HTTP/WS server |
-| `hl-mm` | Market maker: Avellaneda-Stoikov-lite quoter, reconciler, risk, live loop, e2e script |
+| `mm-core` | Venue-neutral market-making core: Avellaneda-Stoikov-lite quoter, reconciler, risk, `Venue.S` signature and the `Live.Make` event loop |
+| `hl-mm` | Hyperliquid venue adapter for mm-core (`Hl_venue`) and the `hl-mm` executable, e2e script |
+| `binance-protocol` | Binance USD-M Futures wire types, JSON codecs and HMAC signing |
+| `binance-sim` | Binance USD-M simulator over the exchange-core engine: REST, depth sequencing, market and user streams |
+| `binance-client` | Async Binance USD-M client (REST, local book, market and user streams) and the mm-core venue adapter |
+| `bybit-protocol` | Bybit v5 (linear) wire types, JSON codecs and signing |
+| `bybit-sim` | Bybit v5 simulator over the exchange-core engine: REST, public and private streams |
+| `bybit-client` | Async Bybit v5 client (REST, local book, public and private streams) and the mm-core venue adapter |
+| `market-maker` | One `market-maker` binary running mm-core on Hyperliquid, Binance or Bybit (or their simulators), with e2e scripts per venue |
 
 Local layout: all checkouts side by side under one directory holding an
 untracked `dune-workspace` and `dune-project` (`(lang dune 3.17)`), so dune
