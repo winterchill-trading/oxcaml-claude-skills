@@ -22,11 +22,21 @@ Or copy a skill directory into `~/.claude/skills/`.
 | Skill | What it covers |
 |-------|----------------|
 | `skills/oxcaml-setup` | Creating and maintaining an OxCaml opam switch, CI, depexts |
-| `skills/oxcaml-modes` | Verified `local_`/`exclave_`/`global_`/`@ local` patterns with compiler error texts |
+| `skills/oxcaml-modes` | Verified `local_`/`exclave_`/`global_`/`@ local`, `@ unique` and `borrow_` patterns with compiler error texts; `examples/` is a dune project built in CI |
 | `skills/async-http-websocket` | cohttp-async + async_websocket servers and clients, same-port upgrades, logging in tests |
 | `skills/janestreet-ocaml-style` | Writing Base/Core/Async code the Jane Street way, ppx_jane, expect tests |
 
 `GOTCHAS.md` is the running log; entries are promoted into skills once stable.
+
+Each skill opens with outcomes, 3-5 reference modules from the org repos and short
+exercises for checking a fresh session against it.
+
+Build the modes examples locally (from the workspace, with a per-agent build dir):
+
+```sh
+cd skills/oxcaml-modes/examples
+DUNE_BUILD_DIR=../../../../_build-skills opam exec --switch 5.2.0+ox -- dune build --root . @all @runtest
+```
 
 ## Scripts
 
