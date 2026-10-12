@@ -310,3 +310,16 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - MinIO no longer publishes images on Docker Hub; `pgsty/minio` and `pgsty/mc` are the community builds that include `mc` and `curl`.
 - `gh workflow run` on org repos needs the admin identity; the secondary account gets 403.
 - GHCR makes every new package private by default, even when pushed from a public repo. Put `org.opencontainers.image.source=https://github.com/<org>/<repo>` in the Dockerfile `LABEL` and in build-push-action `labels` so the package links to the repo and inherits its visibility; an already-created package must be flipped in the web UI, there is no API.
+
+## Feed repos wave one (OKX, Coinbase, Kraken, Deribit, Bitget)
+
+- Venue docs move: Deribit's per-channel pages are found via `https://docs.deribit.com/llms.txt`; Bitget's v2 per-channel URLs redirect to the v3 docs, so capture live frames instead (Node 22's built-in `WebSocket` via `node -e` needs no packages); OKX's docs page is 5 MB, download and grep it; Cboe publishes `.md` versions of its specs on cdn.cboe.com; the CME wiki is JavaScript-rendered, use the Confluence REST API `/wiki/rest/api/content/<id>?expand=body.view`.
+- Book checksums are mostly gone: OKX `checksum` is always 0, Bitget `books` sends none; sequencing relies on `seqId`/`prevSeqId` and `seq`/`pseq`. OKX `seqId` exceeds 2^31, so use 63-bit ints. Coinbase `sequence_num` counts per connection across channels, so a gap resubscribes every book on that connection.
+- Keepalives differ: OKX and Bitget want the plain text frame `ping` answered by text `pong`; Deribit uses `public/test`; Coinbase closes idle channels after 60 to 90 s unless `heartbeats` is subscribed and drops connections that send no subscribe within 5 s.
+- Trade batches arrive newest first on Coinbase and Bitget; every venue resends a backlog on subscribe, so de-duplicate by trade id.
+- Coinbase `market_trades` `side` is the maker's side; the old Exchange `level2` feed now needs authentication, use Advanced Trade. Deribit's `raw` interval needs authentication, use `100ms`. The Coinbase BTC-USD snapshot is one 4.5 MB frame.
+- Deribit funding accrues continuously and sizes are USD notional; OKX swap sizes are contracts. `Feed.S` has no field for size unit, instrument type (spot vs perp with the same symbol), funding interval, open interest or liquidations: candidates for market-data V2 types.
+- `[@sexp.opaque]` on a `Uri.t` field still fails under `[@@deriving sexp_of]` on ox; hand-write `sexp_of_t`. `[%of_yojson: X.t list]` needs `Primitives` opened. ppx_yojson_conv has no `Yojson.Safe.t_of_yojson`; pass raw JSON through with an identity function.
+- `cmd | grep -v ... && git commit` skips the commit when grep filters every line; never put a filtering grep in an `&&` chain. A `;` chain once pushed a non-compiling commit. In zsh `echo ======` fails with "not found".
+- GitHub pushes can fail transiently with `remote: fatal error in commit_refs` or `[remote rejected] (failure)`; retry. A fresh repo's first CI run can fail on "Bad checksum" for the compiler tarball; rerun.
+- `Time_ns.Span.to_int63_ns` returns `Int63.t`; divisions need `Int63.( / )`. `Time_ns.Alternate_sexp` keeps sexps in UTC and avoids time-zone diffs in expect tests.
