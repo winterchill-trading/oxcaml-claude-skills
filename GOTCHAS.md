@@ -157,3 +157,37 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
   workspace and opam builds; keep it out of expect output.
 - A `dune build` can hold `_build/.lock` with no child processes for 30+
   minutes; wrap agent builds in `timeout`.
+
+## 2026-10-12
+
+### From the exchange-core extraction
+
+- **Package cycle.** The engine needs `order-book`, and `order-book` needs the
+  primitives, so one opam package cannot hold both (opam rejects the cycle, even when
+  dune would resolve it per library). Ship two packages from one repo
+  (`exchange-core`, `exchange-core-engine`). Its own CI pins the checkout first
+  (`opam pin add exchange-core . --no-action`), then pins `order-book` from GitHub, then
+  `opam install ./exchange-core-engine.opam --deps-only --with-test`. Consumers pin the
+  same URL twice, once per package name, in dependency order.
+- **Re-export with type equality.** To make `Hl_protocol.Price.t = Exchange_core.Price.t`
+  write `include Exchange_core.Price` in the `.ml` and
+  `include module type of struct include Exchange_core.Price end` in the `.mli`; that
+  keeps `comparator_witness` equal too, so `Price.Map.t` values pass between libraries.
+  A hand-written `include Comparable.S with type t := t` creates a fresh witness; add
+  `and type comparator_witness = M.comparator_witness`.
+- Re-export a variant with its constructors: `type t = M.t = Buy | Sell [@@deriving ...]`
+  in the `.mli`, `include M` plus the extra codecs in the `.ml`.
+- After `include M`, redefining `of_string` (e.g. lowercasing addresses) changes only
+  that function; `Comparable`/`Hashable` sexp converters from `M` still use the base
+  parser. Override `t_of_sexp` as well when it must validate.
+- Venue-neutral cores should not derive yojson on primitives: wire encodings differ per
+  venue (`"B"`/`"A"` vs `"BUY"`/`"SELL"`). Keep codecs in the venue protocol library.
+- Keeping the old venue-level expect tests in the adapter, unchanged, is a cheap proof
+  that an engine extraction is behaviour-preserving (here even the seeded market
+  simulation numbers matched); put the neutral copies, with promoted output, in the
+  core.
+- `dune build ./engine` from inside a repo in the workspace builds just that directory;
+  handy while a sibling repo is mid-refactor and does not compile.
+- **git.** `git rm` stages deletions; a later `git add a b && git commit` sweeps them into
+  that commit. When splitting a refactor into small commits, commit by path
+  (`git commit -m ... -- paths`) or keep deletions unstaged (`rm`, not `git rm`).
