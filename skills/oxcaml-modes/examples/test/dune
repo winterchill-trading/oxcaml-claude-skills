@@ -1,0 +1,8 @@
+(library
+ (name modes_examples_test)
+ (inline_tests
+  (flags
+   (:standard -source-tree-root .)))
+ (libraries core modes_examples)
+ (preprocess
+  (pps ppx_jane)))
