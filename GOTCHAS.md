@@ -267,3 +267,15 @@ See `skills/async-http-websocket/SKILL.md`: same-port websocket upgrade via
 - `Expect_test_helpers_core` is not on the ox switch; use `Or_error.try_with` and print.
 - A repo with no sibling dependencies can build with `dune build --root .` and is then immune to another agent's half-written sibling `dune` files.
 - On GitHub Actions, pushing while the first run is still building the compiler cancels it; let that first run finish so the compiler cache exists. `gh run rerun --failed` is the fix for transient opam download errors.
+
+## Live feeds (market-data `Feed.S` in the three clients)
+
+- `Time_ns` sexps print in the local zone, so expect tests that print timestamps differ between a Mac and CI (UTC). Rewrite to UTC in the test helper, or print `Time_ns.to_int63_ns_since_epoch`.
+- A sibling library can gain a new dependency on GitHub (market-data now needs `parquet`) and every consumer's CI then fails with "unknown package" until it pins it too. Pin order is a dependency order, keep it in the common rules.
+- A library with a `.mli` listing its modules needs the new module added there as well as in the `.ml`, or the library builds but tests cannot see it.
+- Parallel agents in one dune workspace see each other's half-written `dune` files. A private workspace in the scratchpad with symlinks to the needed repos, and `git archive origin/main` snapshots of repos others are editing, isolates a build.
+- `dune exec` runs the binary from `_build-*/install/default/bin/<name>`, so `pkill -f main.exe` misses it; kill by pid or by the `<name> -port` pattern. Check `lsof -iTCP:<port> -sTCP:LISTEN` before starting a sim; a stray `ssh` listener held 3000.
+- Binance mainnet sends `@bookTicker` on the `/public` route only; `/market` is silent for it.
+- Hyperliquid sends a backlog of recent trades on subscribe with `exch_ts` well before `recv_ts`; every `l2Book` message is a full snapshot; `activeAssetCtx` has no venue timestamp.
+- Bybit `orderbook.N` deltas before the first snapshot must be dropped; a sequence gap means resubscribe.
+- In `Command.Param`, `optional_with_default` takes the parsed value as default, not the string form.
