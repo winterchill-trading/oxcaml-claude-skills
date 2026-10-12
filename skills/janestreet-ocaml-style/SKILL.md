@@ -22,3 +22,33 @@ description: Write OCaml in the Jane Street style using Base/Core/Async and ppx_
 - No `Obj.magic`, `Obj.repr` or `Obj.obj`: they undo every type guarantee the
   rest of these rules buy. `scripts/check-obj-magic.sh` enforces this in CI;
   a genuine need goes in `.obj-magic-allowlist` with the reason beside it.
+
+## Agent workflow
+
+1. **Plan, then get it reviewed.** Before editing, write the plan as a short
+   list: which `.mli` files change, which types are added, which tests prove
+   it. Show it to the user (or the orchestrating agent) for anything that
+   touches a public interface, and keep each change small enough to review
+   (tens to a few hundred lines).
+2. **Signatures and types first.** Write the `.mli` before the `.ml`. For a
+   new venue or backend, write the module type (`Venue.S`, `Feed.S`) or the
+   functor seam first and make an empty implementation compile. For a
+   refactor, change the type in the `.mli`, run `dune build`, and fix the
+   errors in dependency order; the compiler's error list is the to-do list.
+   Then rerun the expect tests and read every diff.
+3. **State the contract as a property.** Each public `.mli` change comes with
+   a `Base_quickcheck` property for the function's contract (round trips,
+   invariants, monotonicity), not only hand-picked examples.
+4. **Failing test before the fix.** A bug fix lands as an expect test that
+   shows the wrong output first (commit it, or keep it in the same commit with
+   the old output visible in the history of the change), then the fix that
+   changes the trace. A fix without a test that would have caught it is not
+   done.
+5. **Pin counterexamples.** When Quickcheck finds a failure, copy the shrunk
+   value into the property's `~examples` (or a dedicated expect test) in the
+   same change as the fix, so it is checked on every run, not only when the
+   random seed finds it again.
+6. **Justify removals.** Before deleting a function, test, field or
+   dependency, say why in the commit message: who used it, what replaces it,
+   and which test shows nothing depended on it. Never delete a failing test to
+   get a green build.
