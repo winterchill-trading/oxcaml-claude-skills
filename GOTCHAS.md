@@ -625,3 +625,23 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   order path (Hyperliquid signing uses the secp256k1 C bindings). If a hot use ever
   appears, add C stubs over libcrypto's EVP_DigestSign/Verify (already linked through
   async_ssl) rather than C++.
+
+## Banking libraries
+
+- money: a first-class module over `Fixed_decimal.S` needs a layout annotation because its
+  `t` is `immediate`: `(type (a : immediate)) (module F : Fixed_decimal.S with type t = a)`
+  in the `.ml` and `('a : immediate). (module Fixed_decimal.S with type t = 'a) -> ...` in
+  the `.mli`; a bare `'a` fails with "layout of the first is value".
+- Zarith stores integers that fit in 63 bits as immediate ints, so `Z.t` minor units cost
+  nothing extra for EUR/BTC/USDC and widen for 18-digit ETH; it is a better wide amount
+  than a two-int split. `Q` (same package) gives exact rates and inverses.
+- `include Comparable.Make (...)` shadows `<`, `>` and `min`/`max` for the rest of the file,
+  and `Int.( ... )` brings `Int.sign` (returning `Sign.t`) into scope; put the include at the
+  end of the module, just before `Stable`.
+- A stable type over a registry (currency codes) serialises the code, not the exponent, and
+  fails on unknown codes; then the inline test runner shares one registry across every test
+  file, so a test that registers currencies can change another file's listing output.
+- `Binable.Of_binable_without_uuid` needs `[@alert "-legacy"]`; use it to validate on read
+  (`of_binable` calling the smart constructor) while keeping a derived wire record's shape.
+- A cram test for a CLI in a workspace repo: `(cram (deps %{bin:<name>}))` in `test/dune`
+  and `test/cli.t/run.t`; `dune promote` fills the outputs.
