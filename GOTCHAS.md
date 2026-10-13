@@ -976,3 +976,11 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - `git mv` / `git rm` stage immediately; a later `git add <other paths> && git commit`
   sweeps the staged rename into an unrelated commit (it happened here again). Use plain
   `mv` and add both paths in the commit that belongs to them.
+- pg-async on Linux CI: libpq closes its socket itself on server EOF, so an Async `Fd`
+  over libpq's descriptor crashed the scheduler ("sync_changed_fds_to_file_descr_watcher
+  unable to set fd", `epoll_ctl` EBADF); macOS's select backend never showed it. Watch a
+  `Core_unix.dup` of the socket. Then do not `Fd.close` the dup: on an active socket it
+  calls `shutdown`, which kills the shared TCP session ("server closed the connection
+  unexpectedly" on random connects); close it with `Do_not_close_file_descriptor` plus
+  `Core_unix.close`. Partitioned inline tests run one process per file, so a lazily
+  started shared cluster becomes one cluster per test file.
