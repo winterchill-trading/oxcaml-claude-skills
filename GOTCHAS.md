@@ -527,3 +527,6 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   (restart every key search, compare every byte) was 0.88 us.
 - **Copying build outputs.** Files under `_build` are read-only; `cp` onto an earlier
   copy fails with `Permission denied`. `rm -f` the destination first.
+- **`core_kernel.iobuf` needs `core_kernel` in the opam depends.** It builds locally
+  because the switch has it, and fails in CI with `Library "core_kernel.iobuf" not
+  found`. The words-per-call figures and the pinned zero_alloc errors matched on amd64 CI.
