@@ -605,7 +605,8 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - The engine watches the API's `configs` directory through a read-only mount and reports
   `No such file or directory` until the first follow; the API now `mkdir_p`s both
   directories at startup.
-- hl-sim does not implement the `portfolio` info request; hl-leaderboard-collect logs
-  `no portfolio` per address at Info and ranks from fills and account state instead.
+- hl-sim did not implement the `portfolio` info request at the time of this run, so
+  hl-leaderboard-collect logged `no portfolio` per address and ranked from fills and
+  account state. Implemented the same day (see "Hyperliquid parity").
 - Rancher Desktop answers `docker info` only a minute or so after its VM boots; a build
   started right after shows `dial tcp ... i/o timeout` on ghcr.io. Retry once.
