@@ -798,3 +798,19 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   so mount `/var/lib/postgresql`, not the old `/data` path. On Linux hosts the bind-mounted
   files belong to uid 70; `make reset-data` deletes them from inside a container. Port 5432
   may already be taken locally; `PG_PORT=5433` moves it.
+- risk-rules: siblings under active development break the shared workspace build for
+  minutes at a time (half-applied signature changes). Build against the pushed commits
+  instead: a scratch directory with the root `dune-workspace`/`dune-project`, `git clone`s
+  of each dependency checked out at its `origin/main`, and a symlink to your own repo;
+  `dune build --root <scratch> @<repo>/runtest` with its own `DUNE_BUILD_DIR`. This is also
+  what CI sees. Refresh the clones when a sibling announces an API you need.
+- Matching a sibling's still-growing variant (transfer statuses) by constructor would break
+  on every added case; match on its `Status.name` strings when you only need a subset, and
+  say so in a comment.
+- Expect output of `Float.log1p`/`exp` results can differ in the last bits between macOS
+  libm and glibc; round to 6-9 decimals before printing (`Float.round_decimal`).
+  `print_newline` is a deprecation error under Core; use `print_endline ""`.
+- `[%expect]` promotion after an uncaught exception rewrites the block into
+  `[%expect.unreachable] [@@expect.uncaught_exn ...]` with a backtrace; after fixing the
+  cause, restore the original block (git checkout the test file) instead of promoting
+  again, or the backtrace line numbers keep churning.
