@@ -588,3 +588,22 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - Lightspark has two APIs on one host with Basic auth, and a token belongs to one: a Grid sandbox token gets 401 with a GraphQL `errors` body from `/graphql/server/2023-09-13`. Decode the body before the status. Grid has no sandbox flag; a sandbox platform's `umaDomain`/`proxyUmaSubdomain` contain `sandbox` (lightspark-client uses that as its write guard). The documented `$success.usd@sandbox.uma.money` did not resolve; same-platform UMA receives need webhook approval; cross-customer transfers may be disabled per platform; customer emails must be deliverable.
 - `ppx_inline_test` on the ox switch rejects `let%test_module`; write `module%test Name = struct ... end`. In a `Command.async` body after `open Command.Param`, `return` is the Param one: use `Deferred.unit`, and `let%map.Command` for flags.
 - zsh does not word-split `$var`, so `for c in "grid config" ...; do $exe $c` runs one argument; drive CLIs from `bash -c`. In this shell `cat` is aliased to `bat` in some contexts; use `command cat` when reading files in scripts.
+
+## First compose run of the copy stack (2026-10-13)
+
+- `COPY --from=build .../_build/install/default/share/<repo>/` copied dangling symlinks:
+  dune installs `share/` files as symlinks into `_build/default`, so nginx served 404 for
+  `index.html` and `main.js`. Dereference first in an intermediate stage
+  (`FROM build AS site` + `cp -rL`), then copy from it.
+- nginx `return 302 /?api=/api` behind a port mapping produced
+  `Location: http://localhost:8080/...` (the container's port). Set
+  `absolute_redirect off;` so the redirect stays relative and keeps the host port.
+- `try_files /index.html =404;` inside `location = /` returned 404/403 for the index;
+  `index index.html;` in that location serves it.
+- The engine watches the API's `configs` directory through a read-only mount and reports
+  `No such file or directory` until the first follow; the API now `mkdir_p`s both
+  directories at startup.
+- hl-sim does not implement the `portfolio` info request; hl-leaderboard-collect logs
+  `no portfolio` per address at Info and ranks from fills and account state instead.
+- Rancher Desktop answers `docker info` only a minute or so after its VM boots; a build
+  started right after shows `dial tcp ... i/o timeout` on ghcr.io. Retry once.
