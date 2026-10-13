@@ -814,3 +814,22 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `[%expect.unreachable] [@@expect.uncaught_exn ...]` with a backtrace; after fixing the
   cause, restore the original block (git checkout the test file) instead of promoting
   again, or the backtrace line numbers keep churning.
+- Inside `Date.( ... )` or `Time_ns.( ... )` a local variable named `today` or `now` is
+  shadowed by the module's own function (`Date.today`, `Time_ns.now`), giving a type error
+  about a function; write `Date.( <= ) today closed` or `Time_ns.( >= ) now t`. In a
+  serialization helper module that declares its own `type t`, alias the outer type first
+  (`type state = t`) so `of_t (t : state)` does not resolve to the inner one.
+- `Md5.digest_substring` does not exist in Core; hash `String.prefix s n`. For SHA-256,
+  cryptokit 1.16 is on the switch: `Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) s`,
+  hex via `Cryptokit.transform_string (Cryptokit.Hexa.encode ()) s`.
+- A synthetic `Async_kernel.Time_source` can be moved without a scheduler with
+  `Time_source.advance_directly ts ~to_` (also backwards in a test of a clock stepping
+  back); useful for ledger code that only reads `Time_source.now`.
+- Growing a library API under a dependent that is being written at the same time: add
+  record fields only behind smart constructors (`?purpose`, `?code`, `?sca` optional
+  arguments) and keep existing labelled functions; the dependent kept compiling through a
+  large rework, only its expect output (sexp of the grown records) changes.
+- ledger day close: compute the closing rows before resetting the "at last close"
+  baseline in the same fold step, or every snapshot shows zero movement for the day it
+  closes; a replay-must-reproduce-the-snapshot check does not catch it (both sides share
+  the bug), an expect test of the rows does.
