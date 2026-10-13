@@ -619,3 +619,9 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `hl-copy-backtest` with `--only-packages`.
 - Each test library must be attached to its package (`(package ...)` in the dune stanza)
   or `--only-packages` builds skip or break them.
+- Hand-written curves over zarith, dev build, arm64 (2026-10-13): Ed25519 sign 0.73 ms,
+  verify 0.67 ms; P-256 verify 1.1 ms; P-521 verify 4.5 ms. Roughly 3-30x slower than
+  libsodium/OpenSSL, but each sits behind a REST call or a webhook delivery, never on an
+  order path (Hyperliquid signing uses the secp256k1 C bindings). If a hot use ever
+  appears, add C stubs over libcrypto's EVP_DigestSign/Verify (already linked through
+  async_ssl) rather than C++.
