@@ -744,6 +744,24 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `ox-setup` run of a new repo before it can save its cache; let one run finish before the
   next burst of pushes.
 
+- card-core: `let quickcheck_shrinker = Quickcheck.Shrinker.empty ()` in a submodule with
+  no signature is weakly polymorphic; a record that later derives `quickcheck` over that
+  submodule's `t` fails with "The type constructor ... would escape its scope" on the
+  field. Annotate it (`: t Quickcheck.Shrinker.t`).
+- `[%sexp a, ~label:(b : t)]` fails with "ppx_sexp_value: labeled tuples are unsupported";
+  use `[%message ...]` for labelled output.
+- ledger holds: a capture or release whose `recorded_at` is at or after the hold's
+  `expires_at` is refused ("hold has expired"), so a card clearing that arrives after the
+  hold lapsed must book `Hold.expire` first and then a plain debit. The hold builders take
+  no `?sca`; only `Entry.create` does. A hold built again for a redelivered event is not
+  refused by the builder; the journal answers `Duplicate` on append.
+- payments-core `Booking.post` now appends one linked record and returns a single
+  `Append_result.t`, not a list; tests written against the earlier list shape stop
+  compiling.
+- `dune promote <repo>` is not a valid call; with a per-agent `DUNE_BUILD_DIR` run plain
+  `dune promote` from the workspace root (it only sees your build directory). `sed` in
+  this shell is GNU sed: `sed -i ''` treats `''` as the script.
+
 ## Databases (2026-10-13)
 
 - `pgx`/`pgx_async` (pure-OCaml Postgres) cannot build on the OxCaml switch (pins
