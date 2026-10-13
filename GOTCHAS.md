@@ -686,3 +686,17 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   dependent field.
 - zsh expands a word starting with `=` as a command path: `echo =====` fails with
   "= not found", and so does `echo ==` as a separator. Quote it or use `---`.
+
+## Databases (2026-10-13)
+
+- `pgx`/`pgx_async` (pure-OCaml Postgres) cannot build on the OxCaml switch (pins
+  `ocaml < 5.0` and `core < v0.16`). The libpq bindings `postgresql` 5.4.0 install
+  cleanly without touching core/async; on macOS the build needs
+  `PKG_CONFIG_PATH=/opt/homebrew/lib/postgresql@18/pkgconfig` and
+  `opam install --assume-depexts postgresql`. `sqlite3` 5.4.1 would also install
+  cleanly (dry-run) if ever needed.
+- Decision: PostgreSQL for application state (customers, KYC cases, transfers, cards,
+  review queue, sessions) through a shared `pg-async` library; the ledger journal stays
+  the system of record and is projected into Postgres for queries. The copy-trading
+  app keeps sexp records and Bin_prot journals on disk until it needs more than one
+  instance.
