@@ -768,3 +768,7 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   reorg after settlement could capture a hold twice). Filter the walk's candidate
   transitions through the real `transition` (reason codes included), not a looser table,
   or the walk exercises states the code refuses.
+- Compose Postgres: the `postgres:18` image keeps data under `/var/lib/postgresql/18/docker`,
+  so mount `/var/lib/postgresql`, not the old `/data` path. On Linux hosts the bind-mounted
+  files belong to uid 70; `make reset-data` deletes them from inside a container. Port 5432
+  may already be taken locally; `PG_PORT=5433` moves it.
