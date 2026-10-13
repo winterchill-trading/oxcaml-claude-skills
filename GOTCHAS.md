@@ -959,3 +959,20 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - Ten agents polling `gh run list` in loops exhausted the shared GitHub API quota
   (5000/h) and stalled every CI check for the hour. Rule added to common-rules: one
   `gh run list`, then one `gh run watch --exit-status`; no loops, no background watchers.
+- risk-models, round two: reason codes (top contributions) are not portable across
+  platforms when a feature goes through `log1p`/`exp`: macOS and Linux libm differ in
+  the last bit and reorder near-ties. Compare reason codes with a tie tolerance, not
+  exactly. Tree models (adds and compares only) are bit-identical across platforms.
+- LightGBM `dump_model()` is easy to read in OCaml: nested `tree_structure`, numerical
+  splits `x <= threshold` in float64, and `missing_type` "NaN" (NaN follows
+  `default_left`), "None" (NaN read as 0.0) or "Zero" (NaN read as 0.0, then |x| <= 1e-35
+  follows `default_left`). The margin is the plain sum of leaves (the initial score is in
+  tree 0). Strip `split_gain`/`internal_value`/weights from the dump to halve the file;
+  `internal_value` is printed with 6 digits, so recompute expected values from counts.
+- `gh run watch` polls the API every few seconds and, with other agents polling too,
+  exhausts the shared hourly limit; the public CI badge
+  (`/actions/workflows/ci.yml/badge.svg?branch=main`) needs no API call. Poll
+  `gh run list` every few minutes at most.
+- `git mv` / `git rm` stage immediately; a later `git add <other paths> && git commit`
+  sweeps the staged rename into an unrelated commit (it happened here again). Use plain
+  `mv` and add both paths in the commit that belongs to them.
