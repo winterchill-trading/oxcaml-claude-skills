@@ -610,3 +610,12 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   account state. Implemented the same day (see "Hyperliquid parity").
 - Rancher Desktop answers `docker info` only a minute or so after its VM boots; a build
   started right after shows `dial tcp ... i/o timeout` on ghcr.io. Retry once.
+
+## Copy-trading backtest (2026-10-13)
+
+- `hl-copy-backtest` lives in hl-copy-core but depends on hl-leaderboard, which depends on
+  hl-copy-core: CI builds core first, then a second job pins `hl-copy-core` at the commit
+  under test (not a re-pin of the checkout, which failed) before building only
+  `hl-copy-backtest` with `--only-packages`.
+- Each test library must be attached to its package (`(package ...)` in the dune stanza)
+  or `--only-packages` builds skip or break them.
