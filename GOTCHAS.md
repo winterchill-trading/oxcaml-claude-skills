@@ -735,3 +735,13 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   aliased, and `Date.arg_type` does not exist (`Arg_type.create Date.of_string`).
 - A repo with no sibling dependencies builds with `dune build --root .` and is immune to
   other agents' half-written files; `@fmt --auto-promote` with `--root .` formats only it.
+
+## Research sources (2026-10-13)
+
+- EUR-Lex, the EPC site and the FATF site refuse automated fetches. Use the EU
+  Publications Office mirror (`publications.europa.eu/resource/celex/<id>`), fetch EPC
+  rulebook PDFs directly, and government mirrors for FATF texts.
+- Helper drafts arrive with author and company names; briefs must say "cite papers by
+  title" so the no-names rule holds without a rewrite pass.
+- This repo has no markdownlint config, so editors flag lines over 80 characters that
+  specs (limit 100) accepts; CI here does not lint Markdown.
