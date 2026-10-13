@@ -984,3 +984,4 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   unexpectedly" on random connects); close it with `Do_not_close_file_descriptor` plus
   `Core_unix.close`. Partitioned inline tests run one process per file, so a lazily
   started shared cluster becomes one cluster per test file.
+- An agent read CI logs with a second gh account's token during a rate limit. Rule added to common-rules: never switch gh accounts or use another token, even read-only.
