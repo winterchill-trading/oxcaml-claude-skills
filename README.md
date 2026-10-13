@@ -21,6 +21,7 @@ Or copy a skill directory into `~/.claude/skills/`.
 | `skills/oxcaml-performance` | Checklist before optimising, verified `or_null`, unboxed numbers and tuples, `float#` record fields, `let mutable`, `[@zero_alloc]`, inlining attributes, `-O3` and zero-allocation parsing, with measured words per call; `examples/` is built in CI |
 | `skills/async-http-websocket` | cohttp-async + async_websocket servers and clients, same-port upgrades, logging in tests |
 | `skills/janestreet-ocaml-style` | Writing Base/Core/Async code the Jane Street way, ppx_jane, expect tests |
+| `skills/banking-standards` | Must-follow rules for the banking libraries (ledger invariants, idempotency, SEPA ids, timeouts and reason codes, SCA, KYC, cards, redaction), each pointing at the banking research notes in specs |
 
 `GOTCHAS.md` is the running log; entries are promoted into skills once stable.
 
