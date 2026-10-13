@@ -870,3 +870,40 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   that post several groups must advance the clock (`Time_source.advance_directly`) and
   build each group's entries at the advanced time, since the scratch balances check
   `recorded_at` too.
+
+## Fiat rails: pg-async (2026-10-14)
+
+- `postgresql` bindings 5.4.0: never give a connection an OCaml notice callback
+  (`#set_notice_processor`). The stubs run `PQisBusy` inside
+  `caml_enter_blocking_section`, libpq calls the processor from there, and the first
+  NOTICE (`CREATE TABLE IF NOT EXISTS` on an existing table) hangs the test runner with
+  the server showing "idle in transaction". Use `#set_notice_processing `Quiet`.
+- With `~startonly:true` the bindings take the `PGcancel` handle before the backend key
+  exists, so `#request_cancel` is useless; cancel with `pg_cancel_backend(pid)` from a
+  second session. `#server_version` splits the number the pre-10 way (18.3 comes back
+  as `(18, 0, 3)`). `#send_query` with no params silently uses `PQsendQuery` (simple
+  protocol, several statements allowed).
+- libpq in non-blocking mode still resolves host names with a blocking `getaddrinfo` in
+  `PQconnectStart`, and ignores `connect_timeout`. Resolve with `Unix.Host.getbyname`
+  (Async thread pool), pass `hostaddr` plus `host` repeated per address, and time the
+  handshake yourself. The socket can change between `PQconnectPoll` calls: create a
+  fresh Async `Fd` per wait and release it with `Do_not_close_file_descriptor`; close
+  the long-lived `Fd` the same way before `PQfinish`, or a reused descriptor number
+  collides in Async's table.
+- Async allows one `ready_to` per direction per fd; to wait for read-or-write use two
+  `Fd.interruptible_ready_to` with one shared interrupt and wait for both to return. An
+  idle watcher (for LISTEN) queued in the connection's sequencer must return at once if
+  a query is already waiting, or it blocks on the socket forever.
+- A client timeout that re-runs its send-and-collect closure after cancelling resends
+  the query ("another command is already in progress"); after cancelling, only keep
+  collecting.
+- PostgreSQL semantics that bit tests: a `BEGIN` inside a multi-statement string pulls
+  the statements before it into the transaction; `COMMIT` of an aborted transaction
+  succeeds with tag `ROLLBACK` (check it); `ppx_let` opens `Open_on_rhs` only for
+  `let%map_open`/`let%bind_open`, not `let%map`.
+- Temp clusters: Debian puts `initdb` under `/usr/lib/postgresql/<v>/bin`, macOS caps
+  socket paths at 104 bytes (use `/tmp`), `initdb` refuses root, and a killed inline
+  test runner skips `at_exit`, leaving the cluster running. `Filename_unix.temp_dir`
+  turns a `pg-async-` prefix into `pg_async_`. In expect output, drop libpq's
+  `connection to server at "...", port N failed:` prefix (the port is random) and the
+  `::1` "Connection refused" line macOS adds for `localhost`.
