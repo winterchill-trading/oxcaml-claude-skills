@@ -687,6 +687,32 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - zsh expands a word starting with `=` as a command path: `echo =====` fails with
   "= not found", and so does `echo ==` as a separator. Quote it or use `---`.
 
+- kyc-core: the ox Core has no `String_id.Make` functor. Use
+  `include (val String_id.make ~module_name ~include_default_validation:true
+  ~caller_identity:(Bin_prot.Shape.Uuid.of_string "<fresh uuid>") ())`; the uuid tags the
+  bin_shape, so two id types get different `[%bin_digest]`s and the uuid must never change.
+  The resulting `Stable.V1` has no quickcheck functions, and `~validate` makes the default
+  generator filter random strings (it can spin); shadow `quickcheck_generator` for shaped
+  ids such as two-letter country codes.
+- ppx_quickcheck attributes on a record field must sit inside parentheses with the type:
+  `f : (Date.Stable.V1.t [@quickcheck.generator g])`. Written after the type on its own
+  line they attach to the label and are ignored ("Unbound value
+  Date.Stable.V1.quickcheck_generator"). Simpler: derive quickcheck only on the
+  unversioned `type t = Stable.V1.t = { ... }` whose fields use `Date.t`, `Country.t`.
+- `Time_ns.t` sexps print in the machine's zone; use `Time_ns.Stable.Alternate_sexp.V1`
+  (UTC, same bin_io as `Time_ns`) in types that reach expect output.
+- `include Comparable.Make (...)` also brings a `Set` and `Map` that shadow Core's for the
+  rest of the module (`Set.is_empty` unbound); write `Core.Set...`.
+- Quickcheck over random event streams: near-absorbing states (Rejected, Blocked, Closed)
+  swallow most streams, so weight the generator and pin coverage with an expect test that
+  lists every status the streams pass through (read it from the audit trail, not the final
+  state). A pool of reused event ids also caps how many distinct events apply.
+- "Replaying the stream again changes nothing" is false when errors are skipped: an event
+  rejected the first time may legally apply later. State idempotency over the accepted
+  events only.
+- A workspace build reports errors from other agents' half-written repos and exits 1
+  even when yours is clean; filter the output for `File "<your-repo>/` before deciding.
+
 ## Databases (2026-10-13)
 
 - `pgx`/`pgx_async` (pure-OCaml Postgres) cannot build on the OxCaml switch (pins
