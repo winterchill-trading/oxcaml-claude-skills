@@ -700,3 +700,38 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   the system of record and is projected into Postgres for queries. The copy-trading
   app keeps sexp records and Bin_prot journals on disk until it needs more than one
   instance.
+
+## Fiat rails: Striga (striga-client, 2026-10-13)
+
+- Striga's HMAC covers `MD5(JSON.stringify(parsed body))`, not the bytes sent: a body with
+  spaces after `:` or `,` fails with `401 30014 "HMAC's did not match"` although its MD5
+  was taken over exactly what went on the wire. Send compact JSON (Yojson's `to_string`);
+  Python probes need `json.dumps(..., separators=(",", ":"))`. GET signs the MD5 of `{}`;
+  v1 signs the path without `/api/v1`. `POST /ping` answers `pong`, `GET /ping` is an
+  Express 404 page.
+- Webhook signatures are keyed with the API key, not the secret. The docs' `.md` pages
+  (append `.md`, index at `/llms.txt`) embed full OpenAPI JSON; a 40-line Python extractor
+  over all 264 pages gives a compact endpoint list with request fields and examples.
+- Sandbox provisioning is staged: after a simulated KYC approval the crypto accounts
+  exist within seconds, the EUR and USDC accounts (banking record) from under a minute to
+  several minutes later. An app that looks like it has "no EUR" is just early; poll the
+  wallet. A simulated EUR deposit lands a few seconds after the 200.
+- `startDate: 0` is rejected; Striga uses POST for most reads, so retry policy must be per
+  endpoint, not per verb. Whitelist networks are `BTC`/`ETH`/`BSC`/`POLYGON`/`SOL`
+  ("Ethereum" is "Invalid network") and need an enriched account of that currency first.
+  SEPA payouts to the account's own Striga IBAN are refused (`31003`); intraledger between
+  two wallets of one user is `30030` "Ruleset violation".
+- TOTP: `secretBase32Encoded` is the authenticator key (RFC 6238 over its base32 decode);
+  the raw `secret` (20 printable chars, not base32) is only echoed back to complete
+  enrollment. `Time_ns` cannot hold the last RFC 6238 vector (T = 2e10 s).
+- Error bodies echo the application id (`sourceApplicationId`); add it to the redaction
+  list. The simulator's default SEPA sender name is a real public figure; scrub
+  `bankingSenderName` in fixtures.
+- ppx_yojson_conv: `type nonrec t = { xs : t list [@default []] ... }` in a submodule fails
+  to type-check ("t/2 list" vs "t/1 list"); alias the outer type first
+  (`type transaction = t`). `[@sexp.opaque]` on a field next to `[@key]`/`[@default]` still
+  printed the value here; a `Hidden_string` type with its own `sexp_of_t` is reliable,
+  and a test with a non-placeholder token proves it. `P.anon ("X" %: string)` needs `P.(%:)` when `Command.Param` is
+  aliased, and `Date.arg_type` does not exist (`Arg_type.create Date.of_string`).
+- A repo with no sibling dependencies builds with `dune build --root .` and is immune to
+  other agents' half-written files; `@fmt --auto-promote` with `--root .` formats only it.
