@@ -113,3 +113,12 @@ page.
 - Redact: PAN and IBAN to the last four, never OTP, CVV, PIN, tokens or keys; secrets only
   from the environment, in a type that prints as `<redacted>`.
 - Audit records say who, on whose behalf, what, when, where and the outcome; append-only.
+
+## Storage
+
+PostgreSQL holds application state, but it must stay replaceable. Each service defines
+its own `Store.S` in domain types with `Store_memory` and `Store_pg` implementations
+and one conformance suite over both; SQL and pg-async types live only in `store_pg.ml`
+and `migrations/`. One schema per service, no cross-service joins, idempotency keys on
+every write, the ledger journal append-only outside the database. Domain libraries
+never depend on pg-async.
