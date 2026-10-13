@@ -956,3 +956,6 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   turns a `pg-async-` prefix into `pg_async_`. In expect output, drop libpq's
   `connection to server at "...", port N failed:` prefix (the port is random) and the
   `::1` "Connection refused" line macOS adds for `localhost`.
+- Ten agents polling `gh run list` in loops exhausted the shared GitHub API quota
+  (5000/h) and stalled every CI check for the hour. Rule added to common-rules: one
+  `gh run list`, then one `gh run watch --exit-status`; no loops, no background watchers.
