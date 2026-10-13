@@ -668,3 +668,21 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `modules_without_implementation`) prints errors in every agent's `dune build @<repo>/...`
   output while your own targets still build; filter the output for your repo's paths
   instead of treating a non-empty output as a failure.
+- risk-rules: when the half-written repo is one of your *dependencies*, your build does
+  fail (e.g. `Unbound module String_id.Make` in payments-core); wait a minute and retry. The
+  workspace builds siblings from their working trees, so a local green is not proof the
+  pushed commits build: check CI after binding to a new sibling type.
+- Scaffolding before siblings exist: make the rule type generic in its context
+  (`'ctx Rule.t`, `Engine.evaluate : 'ctx Rule.t list -> 'ctx -> Decision.t`) and test the
+  engine with `int` contexts; the domain `Context.t` is bound later without touching it.
+- `include Int` inside a module that defines its own `Stable` fails with "Multiple
+  definition of the module name Stable"; use `include (Int : Identifiable.S with type t =
+  int)`.
+- `Identifiable.Make (T)` re-exports `T.t_of_sexp`; if `T` derives `sexp` over a
+  validated string, sexp input bypasses validation. Derive only `sexp_of` in `T` and bind
+  `t_of_sexp` to the validating reader.
+- A record kept `private` to hold an invariant (decision severity = worst hit) still gets
+  a derived `t_of_sexp` that trusts the input; override it in `Stable.V1` to re-derive the
+  dependent field.
+- zsh expands a word starting with `=` as a command path: `echo =====` fails with
+  "= not found", and so does `echo ==` as a separator. Quote it or use `---`.
