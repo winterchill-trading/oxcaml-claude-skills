@@ -833,3 +833,8 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   baseline in the same fold step, or every snapshot shows zero movement for the day it
   closes; a replay-must-reproduce-the-snapshot check does not catch it (both sides share
   the bug), an expect test of the rows does.
+- Adding a global rule (here: timestamps never go backwards) silently changes what older
+  expect tests exercise: their steps now fail on the new rule instead of the one they
+  were written for, and `--auto-promote` accepts it, including an uncaught exception with
+  a backtrace whose file path differs in CI (`ledger/test/...` locally, `test/...` in CI).
+  Read every promoted diff after such a change, and grep for `expect.uncaught_exn`.
