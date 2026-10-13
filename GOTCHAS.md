@@ -865,3 +865,8 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `>=3.12`; scikit-learn 1.9 works there. `LogisticRegression` rejects NaN, so a
   baseline over optional features needs `SimpleImputer` (its mean differs from
   `StandardScaler.mean_` in the last bits; parity still within 1e-10).
+- ledger journal with a frozen `Time_source`: a linked group is stamped `now`, `now+1ns`,
+  ..., so the next post at the same `now` fails with "recorded_at goes backwards". Tests
+  that post several groups must advance the clock (`Time_source.advance_directly`) and
+  build each group's entries at the advanced time, since the scratch balances check
+  `recorded_at` too.
