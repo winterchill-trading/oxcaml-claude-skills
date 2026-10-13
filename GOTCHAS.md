@@ -530,3 +530,7 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - **`core_kernel.iobuf` needs `core_kernel` in the opam depends.** It builds locally
   because the switch has it, and fails in CI with `Library "core_kernel.iobuf" not
   found`. The words-per-call figures and the pinned zero_alloc errors matched on amd64 CI.
+
+## Performance wave
+
+- `Pipe.read_now` allocates about 13 words per call even with no consumer, and `Pipe.iter_without_pushback` calls it per element; `Pipe.read_now'` pays it once per batch. venue-net's old relay paid it twice per frame (26 words); batched delivery is 13 and the `on_message` callback is 0. Most of the remaining 35 words per frame are inside async_websocket (payload copy, frame record). Word counts are exact and reproducible across dev, release, O3 and amd64; nanoseconds on a loaded laptop are not, so pin words.
