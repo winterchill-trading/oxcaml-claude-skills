@@ -645,3 +645,26 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   (`of_binable` calling the smart constructor) while keeping a derived wire record's shape.
 - A cram test for a CLI in a workspace repo: `(cram (deps %{bin:<name>}))` in `test/dune`
   and `test/cli.t/run.t`; `dune promote` fills the outputs.
+- ledger: a length-prefixed log cannot tell a damaged length header in the middle of the
+  file from a crash-truncated last frame (both look like "not enough bytes left"), and a
+  repair that cuts the "truncated tail" then deletes every good frame after the damage.
+  Store the length twice (the second copy complemented) so a damaged header is reported as
+  corruption; checksum the payload separately (Core's `Md5` is enough against accidents).
+- `Time_source` is `Async_kernel.Time_source`, not in Core; take
+  `?time_source:[> read ] Time_source.T1.t` and keep `Time_source.read_only ts` (`read`
+  is Core's `Perms` type). `String.Map.Stable` does not exist: write
+  `string String.Stable.V1.Map.t`. `Binable.to_string_with_writer` does not exist either;
+  `Bin_prot.Utils.bin_dump writer v` gives the payload without a size header.
+- `lockf` locks belong to the process, so a second `open` of a locked file from the same
+  process succeeds; test single-writer locking from a forked child
+  (`Core_unix.fork` + `exit_immediately`).
+- Expect output naming a temporary directory: replace the path inside the sexp atoms before
+  `print_s`, not in the printed string, because line wrapping depends on the path length
+  (macOS `/var/folders/...` vs Linux `/tmp/...`).
+- Mutation-check a quickcheck property by disabling a rule (`false && ...`): the dev profile
+  then fails on the now-unused variable (warning 26) before any test runs; add
+  `ignore x;` in the mutant.
+- Another agent's half-written repo in the workspace (a library missing
+  `modules_without_implementation`) prints errors in every agent's `dune build @<repo>/...`
+  output while your own targets still build; filter the output for your repo's paths
+  instead of treating a non-empty output as a failure.
