@@ -745,3 +745,26 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   title" so the no-names rule holds without a rewrite pass.
 - This repo has no markdownlint config, so editors flag lines over 80 characters that
   specs (limit 100) accepts; CI here does not lint Markdown.
+- payments-core: a library module named `String_id` is shadowed by `open! Core` (Core has
+  its own `String_id` without `Make`), so `String_id.Make` is "Unbound module"; name your
+  id functor something else (`Opaque_id`).
+- `Time_ns.Stable.V1` sexps print in the machine's local zone (`10:00:20+01:00` on a
+  laptop, `Z` in CI), so expect tests over records with stable times differ by machine.
+  Keep `Time_ns.Stable.V1` for bin_io and take sexp from `Time_ns.Alternate_sexp` (always
+  UTC) in a small wrapper type.
+- `Date.arg_type` and `Day_of_week.arg_type` do not exist; use
+  `Command.Arg_type.create Date.of_string`.
+- `let%bind target : T = ...` is a syntax error under ppx_let; write
+  `let%bind (target : T) = ...`.
+- When a sibling's working tree is broken mid-refactor, build against its committed HEAD:
+  a scratch directory with `git -C ../<sib> archive HEAD | tar -x -C <sib>`, a symlink to
+  your own repo, copies of the root `dune-workspace`/`dune-project`, and
+  `dune build --root <scratch> @<repo>/runtest`; `dune promote --root <scratch>` writes
+  through the symlink.
+- `dune promote` applies the `.corrected` file from the last run; editing a test between
+  a failing run and the promote loses the edit. Re-run, then promote.
+- The random-lifecycle property over transfer transitions found two real booking bugs
+  (an incoming fee larger than the amount overdrew the customer; an outgoing on-chain
+  reorg after settlement could capture a hold twice). Filter the walk's candidate
+  transitions through the real `transition` (reason codes included), not a looser table,
+  or the walk exercises states the code refuses.
