@@ -712,6 +712,37 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   events only.
 - A workspace build reports errors from other agents' half-written repos and exits 1
   even when yours is clean; filter the output for `File "<your-repo>/` before deciding.
+- banking-provider: payments-core's `Booking.transition`/`created`, `Swap.execute` and
+  card-core's `Booking` check their entries against `Balances` with the time you pass as
+  `recorded_at`; the journal stamps records at least 1 ns apart, so with a synthetic clock
+  that stands still the second booking in one instant fails "recorded_at goes backwards".
+  Pass `Ledger.Journal.now journal`, not the clock. card-core's `Booking.settled` has no
+  `~at`: it uses the clearing's `at`, so build the clearing with the journal's time too.
+- `Booking.post` is `Journal.append_linked`, which errors on an empty list; skip it when
+  a transition books nothing (e.g. `Submitted -> Pending`).
+- `open Card_core` (or any sibling that is still growing) broke the build twice within an
+  hour when the sibling added `Booking` and `Statement`, silently shadowing
+  payments-core's and our own. Alias the modules you use (`module Card = Card_core.Card`,
+  `module Card := ...` in an `.mli`) instead of opening a sibling.
+- With `open Async` in a test library every `let%expect_test` must return
+  `unit Deferred.t`, pure ones included (`return ()`).
+- `Deferred.bind` schedules a job even when the deferred is already determined, so
+  `Deferred.peek` of a composed `let%bind` chain is `None` inside a synchronous
+  Quickcheck body; call the (immediately determined) primitives one by one there.
+- A ledger statement of a customer account alone shows a payment as its hold (a debit)
+  and never the capture, which leaves the pending sub-account. For a bank statement merge
+  the account with `Account_id.pending` and drop sequence numbers that net to zero.
+- Mutation-check a property against a mode where the bug can show: with immediate
+  settlement no hold stays open, so a statement that ignored held funds still passed;
+  manual settlement caught it.
+- card-core: an approved stand-in advice above the available balance cannot be held
+  (`Booking.authorized` places a hold, which refuses an overdraft); only the later
+  clearing books a shortfall.
+- `module (_ : sig end) = struct ... end` is a syntax error; to keep a functor
+  application type-checked in a test, name it and bind its value to `_` with a type.
+- CI with `cancel-in-progress: true` and a push per commit cancels every cold
+  `ox-setup` run of a new repo before it can save its cache; let one run finish before the
+  next burst of pushes.
 
 ## Databases (2026-10-13)
 
