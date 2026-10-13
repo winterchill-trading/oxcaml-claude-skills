@@ -838,3 +838,30 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   were written for, and `--auto-promote` accepts it, including an uncaught exception with
   a backtrace whose file path differs in CI (`ledger/test/...` locally, `test/...` in CI).
   Read every promoted diff after such a change, and grep for `expect.uncaught_exn`.
+- risk-models (Python training, OCaml scoring): a `[@zero_alloc]` function cannot call
+  `Array.fill` (external `caml_array_fill`); write the loop. A helper returning a boxed
+  `float` fails the check unless it is `[@inline always]` into the annotated caller, and
+  a `float` argument to a non-inlined function costs the caller 2 words per call: give
+  hot entry points a `float#` variant (`observe_u`, `score_u`) and inline the boxed one
+  into it. A `float ref` sink in a benchmark boxes every store; a one-element
+  `float array` does not.
+- Tree parity with scikit-learn's HistGradientBoosting is bit-exact when the margin is
+  summed in the same order (baseline, then each tree's leaf in iteration order) and the
+  sigmoid branches on the sign the same way in both languages. Split thresholds can be
+  `+inf` (missing versus present) and JSON has no infinity: export the largest finite
+  double. Internal node `value`s are not usable expected values (the root is 0);
+  recompute count-weighted subtree means for path attributions.
+- `dune promote` after editing a test file whose last run failed restores the old
+  corrected file over the edit (it happened twice here): rerun the build after editing,
+  then promote. `dune promote --root .. <path>` from inside a repo fails with "no file
+  or directory"; promote from the workspace root with a root-relative path.
+- When a sibling's feature schema is still moving, generate the Python schema from the
+  OCaml library (`risk-models schema > features.json`) and add an OCaml test comparing
+  the committed file with the library, so drift fails CI instead of silently mis-ordering
+  columns.
+- `Time_ns.now` on macOS has 1 us resolution: per-call latency percentiles below that
+  are quantised to 0 or 1000 ns; time a loop for the mean.
+- `uv init --bare` plus `uv add` picked the newest Python (3.14) when the project said
+  `>=3.12`; scikit-learn 1.9 works there. `LogisticRegression` rejects NaN, so a
+  baseline over optional features needs `SimpleImputer` (its mean differs from
+  `StandardScaler.mean_` in the last bits; parity still within 1e-10).
