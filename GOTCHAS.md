@@ -548,6 +548,7 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 ## Hyperliquid parity
 
 - Gitbook docs pages download as Markdown by appending `.md` to the URL, far easier than WebFetch output. hl-protocol decoders ignore unknown fields, so unsupported options pass through silently. Hyperliquid STP is "expire maker" (resting own order cancelled, taker keeps matching); base perp fees are 4.5/1.5 bp; rejected orders still produce `orderUpdates`; liquidation cancels are `liquidatedCanceled`; idle websockets close after 60 s; l2Book pushes are at least 0.5 s apart; at most 10 user addresses per websocket connection. Approvals use the `HyperliquidSignTransaction` v1 domain, network chosen by `hyperliquidChain`, not chain id.
+- `POST /info {"type": "portfolio"}` returns a list of `[window, {accountValueHistory, pnlHistory, vlm}]` pairs, not an object: histories are `[ms, "value"]` points and the windows are `day`, `week`, `month`, `allTime` and the `perp` variants (eight in all, in that order). hl-sim serves them from its one-minute account samples (same figures for the perp windows, since it has no spot).
 
 ## Copy-trading platform
 
