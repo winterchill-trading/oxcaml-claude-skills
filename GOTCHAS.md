@@ -1189,3 +1189,21 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   0.7 ms on an M-series Mac, and the RFC 6979 nonce makes a test signer reproduce the
   W3C WebAuthn vectors' ES256 signatures byte for byte, a strong check of the curve
   code.
+
+- investing-core: `Identifiable.Make (T)` needs `bin_io` in `T`; for a validated string
+  id, put `Binable.Of_binable_without_uuid [@alert "-legacy"] (String) (...)` (with
+  `of_binable` calling the validator) inside `T` itself, then `module Stable = struct
+  module V1 = T end`. After `include Identifiable.Make (T)` the comparison operators are
+  the id's, so `String.length s > n` no longer type-checks below the include.
+- `Fixed_decimal.S` types derive no `bin_io`; a stable type over one is easiest as its own
+  `int` (units) with `Of_binable` over `Int` that re-checks the range on decode.
+- A deterministic random walk with rounding at every step gives different results for the
+  same day when computed forward from a range start versus backward from the anchor. Make
+  the range query step in the same direction as the single-day function (forward after the
+  anchor, backward before it) and pin it with a property: range result = single days.
+- Mutable simulator settings read at decision time instead of placement time change
+  orders already waiting; snapshot the settings into each order when it is placed.
+- `Date.of_time` takes `Time_float.t`; for `Time_ns.t` use `Time_ns.to_date ~zone`.
+- `dune promote` after a test that raised writes an `[@@expect.uncaught_exn {| ... |}]`
+  block with a backtrace into the source; delete it after fixing the test, or the next
+  run fails on the stale block.
