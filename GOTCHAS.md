@@ -1408,3 +1408,27 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   only had transitively. CI docs steps install `result odoc` together. Seven repos were
   red for an hour because the step was added without a Linux run first; add a CI step,
   then watch one run before rolling it out.
+
+### org-access (2026-10-14)
+
+- Binding a functor result to the library module's name (`module Access = Access.Make
+  (M) (Store)`) hides the library module's other parts: `Access.Error` and
+  `Access.Config` become "Unbound module". Name the instance `Ops`. The same happens
+  inside a functor whose parameter is called `Store`: `Store.Note` (a submodule of the
+  library's `Store`) is unbound in the body; alias it before the functor
+  (`module Note = Store.Note`).
+- `Time_ns.Stable.Alternate_sexp.V1.t` derives bin_io, sexp, compare, equal and hash,
+  so one record type can be both the working type and the `Stable.V1` type while its
+  sexp stays in UTC on every machine; no separate unstable/stable record pair needed.
+- A store conformance suite should prove it catches the bug it exists for: wrap the
+  in-memory store with a last-writer-wins `update_*` and assert the suite fails.
+- Accepting an invitation touches two records (membership, invitation). Write the
+  membership first: a crash in between leaves a member with a pending invitation, which
+  the next attempt can finish; the other order leaves an accepted, single-use token and
+  no membership, which nothing can repair.
+- In an approval workflow, check the permission before "not your own request": an
+  operator who made a request and tries to approve it should hear `role_required`, and
+  only a maker who could otherwise approve (an admin) hears `own_request`.
+- `sed -i ''` (the BSD form) fails on this machine because `sed` is GNU: the empty
+  string is read as the script and the expression as a file name ("can't read s/...").
+  Use `sed -i`.
