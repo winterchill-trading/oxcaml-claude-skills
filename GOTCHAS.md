@@ -1158,3 +1158,34 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - A password hash read back from storage is untrusted input: check its Argon2 memory
   and pass counts against limits before deriving, or one damaged row makes the server
   allocate gigabytes.
+
+### webauthn (2026-10-14)
+
+- A point-free top-level binding of a Core string function fails under OxCaml modes:
+  `let strip = String.lstrip ~drop:(Char.equal '\x00')` gives "The expression is local
+  but is expected to be global ... modules always need to be allocated on the heap".
+  Eta-expand: `let strip s = String.lstrip s ~drop:...`.
+- Core's `List.init n ~f` calls `f` from the last index down. A parser that reads items
+  with `List.init n ~f:(fun _ -> read ())` returns them reversed (found by a CBOR
+  round-trip property); use an explicit loop for side-effecting `f`.
+- Cryptokit 1.16 `RSA.unwrap_signature` raises in `CryptokitBignum.to_bytes` when the
+  modulus bit length is not a multiple of 8 (it sizes the output as `size / 8`); the W3C
+  WebAuthn RS256 example uses a 3482-bit modulus. Verify with `Z.powm` instead.
+  `RSA.new_key 2048` can return a 2047-bit modulus; draw again if the size matters.
+- An executable that runs `Async.Thread_safe.block_on_async_exn main` and prints with
+  Async's `printf` prints nothing: the writer is not flushed before exit. Open
+  `Async_kernel` (Core's `printf`) and call `Async.Thread_safe.block_on_async_exn`
+  qualified.
+- `Monitor.try_with_or_error` in an expect test prints a backtrace (and a CR from the
+  expect collector); `Monitor.try_with ~extract_exn:true` and printing the exn keeps the
+  output stable.
+- Inline tests that read data files need `(inline_tests (deps (source_tree vectors)) ...)`
+  and open them by a path relative to the test directory.
+- Test vectors from `raw.githubusercontent.com` (Wycheproof, other projects' test
+  suites) do not use the GitHub API quota; fetch them with `curl`, not `gh api`.
+- A shell command that redirects into a file without a heredoc (`cat > f 2>/dev/null;`)
+  waits on stdin and the tool call hangs until its timeout.
+- For P-256 over zarith, Jacobian coordinates plus Shamir's trick verify in about
+  0.7 ms on an M-series Mac, and the RFC 6979 nonce makes a test signer reproduce the
+  W3C WebAuthn vectors' ES256 signatures byte for byte, a strong check of the curve
+  code.
