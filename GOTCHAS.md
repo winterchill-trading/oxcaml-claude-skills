@@ -1436,6 +1436,43 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   (`\208\186...`); print labels or use `%s` when the text should be readable.
 
 
+### Product libraries: payments, FX, requests and schedules in a service (2026-10-14)
+
+- ledger `Journal.transfer` refuses an entry whose postings are in more than one currency
+  ("postings in more than one currency"). Book an exchange as single-currency entries
+  appended together with `Journal.append_linked` (all or none). Idempotency keys allow
+  only `[A-Za-z0-9_.:/@+-]`, so a per-currency suffix on one key needs one of those
+  (`|` and `#` are refused at run time).
+- service-kit `Router` takes the first route that matches: register `/payments/activity`
+  before `/payments/:id`, or the parameter route swallows the static one.
+- A module of your own named like a service-kit module (`Step_up`) is shadowed in an `.mli`
+  that does `open Service_kit`: the error is "Unbound module Step_up.Purpose ... there is
+  a module type named Step_up.Purpose". Give it a distinct name.
+- service-kit `Step_up.consume` uses a grant once, so a client that retries the same
+  request after a network error is refused. To accept retries of that one request only,
+  `check` the grant (signature, session, purpose, expiry) and bind its id to
+  operation + idempotency key in the store with one compare-and-set statement.
+- pg-async: `Param.option Type.string` for an optional uuid compiles and then fails at run
+  time (sqlstate 42804) against a `uuid` column; use `Param.option Type.uuid`. Tests on
+  the memory store do not catch it; a transcript run over both stores does. The memory
+  store does not enforce foreign keys either: such a transcript must insert the parent
+  rows (user, account) first.
+- fx-core `Bundled.parse` stamps every rate's `fetched_at` at midnight of its rate date,
+  dropping a snapshot's own fetch time; build `Observation.create` from your own parser
+  when ages must match an existing feed. `Rate_table.Mid.inverse_rate` has 20 significant
+  digits; a 10-digit display inverse is `Ratio.round_sig Half_even ~digits:10 (Q.inv r)`.
+- scheduler-core `Recurrence ~max_occurrences` counts date indices, so skipped and missed
+  dates use the allowance up; to count only payments made, keep the maximum outside the
+  recurrence. `Schedule.next_to_skip` refuses a paused schedule.
+- requests-core records are private: store their `Stable.V1` form (a sexp or bin_prot
+  value) and keep service fields (the payment that settled a request) in a wrapper.
+  `Link.pay` checks `Already_paid` before the link's status; a service that must answer
+  "used up" or "expired" first checks the status itself.
+- auth-kit `Passcode` functions hash synchronously (about 17 ms at the default Argon2id
+  costs); run them under `In_thread.run` in an Async server.
+- zsh ties the array `path` to `PATH`: a shell function with `local path=$2` loses every
+  command (`curl: command not found`). Name the variable something else or run under bash.
+
 ## Fiat rails: lightspark-provider (2026-10-14)
 
 - Grid's sandbox platform holds only USD, USDC, USDT and USDB (`GET /config`
