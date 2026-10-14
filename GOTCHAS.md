@@ -1696,3 +1696,13 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   package while adding the `oxcaml-*` guard packages: order-book's docs step then failed
   with `Library "exchange-core" not found`. List the pins in the same install
   (`opam install -y result odoc $(opam pin list --short)`) so the solver keeps them.
+- Additive library changes (2026-10-14): an optional argument is erased only when a
+  positional argument after it is applied. Adding `?rounding` to a function whose
+  arguments are all labelled (`of_ratio ~num ~den`, `clawback ~purchase ~earlier ...`)
+  triggers warning 16 and turns every existing call into a partial application, so it is
+  a breaking change; add a sibling function (`of_ratio_rounded ~rounding`,
+  `clawback_with ~rule`) instead. `?opt` before a positional `t` (`average_cost ?precision
+  t`, `Engine.create ?clawback program store`) is fine. Rounding to fewer decimals must
+  start from the exact rational: rounding an already-rounded eight-decimal value again
+  can differ (double rounding). A private record's fields used from another module on a
+  value whose type is not yet known need qualifying (`period.Period.to_date`).
