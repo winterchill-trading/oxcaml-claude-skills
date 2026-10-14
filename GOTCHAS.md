@@ -1207,3 +1207,43 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - `dune promote` after a test that raised writes an `[@@expect.uncaught_exn {| ... |}]`
   block with a backtrace into the source; delete it after fixing the test, or the next
   run fails on the stale block.
+
+### otp-mail (2026-10-14)
+
+- Cryptokit 1.16 `Random.system_rng ()` raises on every Unix (it is implemented for
+  Windows only); read the kernel CSPRNG with `Random.device_rng "/dev/urandom"`.
+  `Random.pseudo_rng seed` (ChaCha20, 16+ byte seed) is the deterministic one for tests.
+- Cryptokit's `RSA.sign`/`sign_CRT` is the raw private-key operation: build the
+  PKCS#1 v1.5 padding (`00 01 FF.. 00 || DigestInfo || hash`) yourself and left-pad the
+  result to the modulus length. DKIM signatures built this way verify with dkimpy 1.1.8
+  (installed in a scratchpad venv, run with `python -I`) in all four canonicalization
+  pairs, and dkimpy's verify here.
+- This machine has `core.autocrlf=input`: committing a CRLF fixture (an `.eml`) silently
+  turns it into LF and CI then parses different bytes. Add `test/fixtures/** -text` to
+  `.gitattributes` and re-add the files (`git ls-files --eol` shows `i/crlf`).
+- STARTTLS from Async: `Async_ssl.Tls.wrap_client_connection config reader writer ~f`
+  upgrades an open plain connection (and `wrap_server_connection` the server side). Check
+  the host name in `Config.Client.create ~verify_callback` with
+  `Ssl.Connection.check_peer_certificate_host`. In expect tests classify TLS failures by
+  substring ("hostname did not match", "certificate verify failed") rather than printing
+  them: the OpenSSL error codes and source locations in the text differ between builds.
+- A test CA for TLS tests: sign the server certificates, then delete the CA key so the
+  committed CA can sign nothing else; a 100-year validity keeps the fixtures from
+  expiring.
+- `?time_source` with a default of `Time_source.wall_clock ()` closes the parameter's
+  type to `Time_source.t`, which no longer matches an `.mli` saying
+  `[> read ] Time_source.T1.t`. Take it as an option and match:
+  `None -> wall_clock () | Some ts -> Time_source.read_only ts`.
+- `Monitor.try_with_or_error ~extract_exn:true` also keeps backtraces out of expect
+  output. `Pipe.read_now_as_queue` does not exist; `Pipe.read_now'` returns the queue.
+- An expect block whose output contains `|}` (for example the RFC 5322 atext characters
+  `{|}`) ends the quoted string early and the file fails to parse; reorder the
+  characters in the test input.
+- In a list of tuples whose second element is a function,
+  `[ a, fun x -> ...; b, fun _ -> failwith "..." ; c, ... ]` parses the rest of the list
+  into the first `fun`; parenthesize each `(locale, fun ...)` element.
+- Running `dune build @<repo>/fmt --auto-promote` after a failing `@runtest` leaves
+  `dune promote` with nothing to promote (the formatted file no longer matches the
+  `.corrected` file's base). Promote first, format after.
+- Zone files: a DKIM TXT record for a 2048-bit key is longer than one 255-byte TXT
+  string; print it as several quoted strings, which resolvers join.
