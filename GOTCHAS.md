@@ -1070,3 +1070,26 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `Core_unix.close`. Partitioned inline tests run one process per file, so a lazily
   started shared cluster becomes one cluster per test file.
 - An agent read CI logs with a second gh account's token during a rate limit. Rule added to common-rules: never switch gh accounts or use another token, even read-only.
+
+## Product libraries
+
+- fx-core: `let compare = Q.compare` (and `Q.equal`) against an `.mli` that says
+  `[@@deriving compare, equal]` fails with a mode mismatch (`t @ local -> t @ local ->
+  int` is not included in `t compare`); eta-expand: `let compare a b = Q.compare a b`.
+- `[@sexp.opaque]` on a record field only applies inside parentheses with the type:
+  `max : (Z.t[@sexp.opaque])`. Written after the type it is ignored and the derivation
+  asks for `Z.sexp_of_t`.
+- A submodule that defines its own `create` and then calls the outer module's `create`
+  gets its own (wrong labels). Bind `let create_spread = create` before the submodule.
+- Async in one inline test without making every test in the library return a deferred:
+  `Async.Thread_safe.block_on_async_exn (fun () -> ...)` inside a plain
+  `let%expect_test`. `Time_source.advance_directly` returns `unit`, not `Or_error`.
+- odoc: a `{v ... v}` block must be indented at the column of the opening brace or odoc
+  warns; `{!Async_kernel.Time_source}` does not resolve from a library that links only
+  `async_kernel`, write it as code (`[Async_kernel.Time_source]`).
+- payments-core `Swap.Quote.t` has public fields and `Swap.execute` does not recompute
+  amounts from the rate, so a pricing library can apply its own rounding rules and still
+  book through `Swap.execute` by building the record directly (mid rate as `market`).
+- Significant-digit rounding of a `Q.t`: the decimal exponent is the digit count of the
+  numerator minus that of the denominator, minus one when `q < 10^e`; scale, round with
+  `Money.Rounding.round`, divide back. The result always has a terminating decimal.
