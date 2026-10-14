@@ -1247,3 +1247,35 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `.corrected` file's base). Promote first, format after.
 - Zone files: a DKIM TXT record for a 2048-bit key is longer than one 255-byte TXT
   string; print it as several quoted strings, which resolvers join.
+
+### griffin-provider (2026-10-14)
+
+- payments-core's SEPA rails validate EUR (`Sepa.validate`), so `Transfer.draft` cannot
+  build a GBP transfer on them and `Event.incoming_transfer` refuses a GBP deposit on
+  them. A GBP adapter can only report on `Intraledger` (with `Intraledger` details) until
+  payments-core has a Faster Payments rail; a GB IBAN still carries the sort code and
+  account number (BBAN = 4-letter bank code, 6-digit sort code, 8-digit account).
+- banking-provider's conformance suite opens an EUR account with an IBAN before every
+  money scenario, so a GBP-only provider passes only the customer, KYC, webhook and ping
+  scenarios; check the money properties in a GBP walk of your own.
+- Griffin sandbox accounts (embedded ones too) start with GBP 1m, and any payment above
+  GBP 1m is refused with `422 payment-amount-exceeds-scheme-limit` before the balance is
+  looked at. To see an insufficient-funds failure, move the balance away first; the
+  submission is then accepted and fails with `submission-status-reason:
+  insufficient-funds`, a field griffin-client's `Submission.t` drops (decode the raw JSON
+  with `Client.get t url Fn.id`).
+- Griffin's event log takes `sort=created-at&filter[created-at][gte]=<ISO>`, which makes
+  an incremental poller simple; dedupe by `event-url`, several events share a
+  millisecond.
+- Inside `let open Deferred.Or_error.Let_syntax`, `>>|` is the Or_error map, so
+  `d >>| fst` on a plain `Deferred.t` fails with "expected 'a Or_error.t"; write
+  `Deferred.map d ~f:...`.
+- A Python heredoc (`python3 - <<'EOF'`) whose script contains a line `EOF` (for example
+  text appended to a file) ends early in zsh and the rest runs as shell; write the
+  script to a file in the scratchpad and run it.
+- `Pipe.close_read r` discards what is queued: read with `Pipe.read_now' r` first when a
+  test inspects the events a call published.
+- An offline adapter test can drive griffin-client through `Transport.create ~send` with
+  a stateful in-memory Griffin keyed by method and path segments; pass
+  `~max_retries:0`, and answer account opening with an `open` account so
+  `wait_until_open` never sleeps.
