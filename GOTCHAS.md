@@ -1655,3 +1655,7 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   workspace but not in a single-repo CI docs build, which installs siblings without their
   docs; with `ODOC_WARN_ERROR=true` that turns CI red. Write such names as code spans.
   dune caches odoc warnings, so re-run with a fresh build directory to see them again.
+- `opam install -y result odoc` in CI (builtin-0install solver) can drop a pinned sibling
+  package while adding the `oxcaml-*` guard packages: order-book's docs step then failed
+  with `Library "exchange-core" not found`. List the pins in the same install
+  (`opam install -y result odoc $(opam pin list --short)`) so the solver keeps them.
