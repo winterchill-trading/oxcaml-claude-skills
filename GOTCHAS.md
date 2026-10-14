@@ -1403,6 +1403,39 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   follow-up in the same change set then moved its digests. Say "unreleased, may move" in the
   changelog until the version is tagged.
 
+### Product libraries: service code on the kits (2026-10-14)
+
+- service-kit typed paths: a `Path.t` value shared by two routes (`let accounts =
+  Path.(root / "accounts" /: string "id")`) is fixed by the value restriction to the first
+  route's handler type, and the second route fails with a type error about `'_weak`
+  variables. Build each path in a function (`let accounts () = Path.(...)`) or inline it.
+- PostgreSQL `jsonb` stores objects with keys reordered (and duplicate keys dropped), so a
+  transcript that compares stored JSON byte for byte against the request fails. Compare
+  canonical JSON (keys sorted) or store `json`/`text` when the bytes matter.
+- A development pin on a dependency in the shared switch (`opam pin add x <path>`) blocks
+  installing the same package from the org opam repository: opam keeps the pin and builds
+  the local tree. Unpin first (`opam pin remove x`), after a dry run.
+- Some generated opam files lack `x-maintenance-intent`, which the org opam repository's
+  check requires. Put `x-maintenance-intent: ["(latest)"]` in `<pkg>.opam.template` so dune
+  keeps it on regeneration.
+- An Async bind between a balance check and a ledger append lets two postings interleave:
+  both read the old balance, both pass, both append. Keep the check and the append in one
+  synchronous step (no `let%bind` between them), or serialise per account with a
+  `Throttle`/`Sequencer`.
+- service-kit `Idempotency`: a stored response must not include a marker that is added on
+  the way out (`Idempotent-Replayed: false`); add it after storing, or the replay carries
+  two values and `Response.header` returns the first.
+- otp-mail `Message_id.to_string` already writes the angle brackets; adding another pair
+  for a JSON `Message-ID` header gives `<<...>>`.
+- otp-mail `Template.Catalogue.check` used `String.length` for the 150-character subject
+  limit, which counts bytes; Cyrillic subjects take two bytes a letter. Count UTF-8 lead
+  bytes (`Char.to_int c land 0xC0 <> 0x80`).
+- `Core_unix.putenv` raises the `unsafe_multidomain` alert (an error in dev builds); a test
+  that sets variables writes `(Core_unix.putenv [@alert "-unsafe_multidomain"])`.
+- A `let%expect_test` printing a string with `%S` shows Cyrillic as decimal escapes
+  (`\208\186...`); print labels or use `%s` when the text should be readable.
+
+
 ## Fiat rails: lightspark-provider (2026-10-14)
 
 - Grid's sandbox platform holds only USD, USDC, USDT and USDB (`GET /config`
