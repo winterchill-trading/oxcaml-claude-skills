@@ -1303,6 +1303,27 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   with `cancel-in-progress`, keep committing locally and push once that cold run has
   saved the switch cache.
 
+### requests-core (2026-10-14)
+
+- `let ( let* ) = Result.( >>= )` does not type under OxCaml: the bind takes its
+  continuation as a local closure ("... @ local -> ... is not compatible with ..."). Write
+  the operator out with a `match`, or use `Result.Let_syntax`.
+- A sibling caught mid-edit (an `.mli` committed to disk without its `.ml`) fails the
+  whole workspace load for every repo that depends on it, and dune then builds nothing.
+  A build wrapper that only prints errors from your own repo reports a clean build that
+  never ran; also print errors from your dependencies, or check that the objects exist.
+- odoc warns "Reference to 'status' is ambiguous" when a module has both a record field
+  and a value named `status`; write `{!val-status}` (or `{!Request.val-status}`).
+- A record declared `private` in the `.mli` cannot be updated with `{ r with ... }`
+  anywhere outside its module, including a conformance functor in the same library:
+  build the variants through the module's constructors instead.
+- `Payments_core.Booking.apply` returns an error for entries whose keys the balances
+  already booked (the journal answers `Duplicate` instead); to show that a retried
+  settlement books once, compare the rebuilt entries for equality and expect the second
+  apply to fail.
+- `[%message (a.b.c : t)]` labels the field `"(a.b).c"`; give an explicit label
+  (`~c:(a.b.c : t)`) for readable expect output.
+
 ## Fiat rails: lightspark-provider (2026-10-14)
 
 - Grid's sandbox platform holds only USD, USDC, USDT and USDB (`GET /config`
