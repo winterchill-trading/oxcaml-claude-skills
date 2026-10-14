@@ -1093,3 +1093,34 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - Significant-digit rounding of a `Q.t`: the decimal exponent is the digit count of the
   numerator minus that of the denominator, minus one when `q < 10^e`; scale, round with
   `Money.Rounding.round`, divide back. The result always has a terminating decimal.
+
+## Product libraries
+
+### service-kit (2026-10-14)
+
+- `open! Async` brings `Async.Clock` into scope and shadows a library module named
+  `Clock` in every file (and `.mli`) that opens it: "Unbound type constructor
+  Clock.t". In library files either skip `open Async` (write `Async.Deferred.t`,
+  `Async.return`) or alias the module first (`module Kit_clock = Clock`). Test files
+  that `open Service_kit` after `open Async` are fine.
+- `Cohttp.Code.status_code` derives only `sexp`: `[@@deriving compare]` on a record with
+  a status field fails with "Unbound value Cohttp.Code.compare_status_code". Wrap it in a
+  local module comparing `code_of_status`.
+- `Array.binary_search` returns a local option under OxCaml ("This value is local but is
+  expected to be global") when the result escapes; a linear scan is simpler for short
+  arrays such as histogram buckets.
+- `Time_ns.t` sexps print in the machine's zone (`+01:00` on a Mac, `Z` in CI), so expect
+  output differs between the two. Use `Time_ns.Alternate_sexp.t` in the unstable type's
+  fields (it is equal to `Time_ns.t`) and keep `Time_ns.Stable.V1.t` in the `Stable`
+  module for bin_io.
+- Record fields with the same name in sibling types (`params` in a message and in a
+  catalogue entry) resolve to the last type defined; annotate the binding
+  (`(entry : Entry.t)`) or the access breaks with a type error far from the cause.
+- Expect tests that `return ()` a Deferred need `open Async` in that file; mixing a pure
+  file with one Async test fails with "This expression has type unit Deferred.t but an
+  expression was expected of type unit". Put Async tests in their own file.
+- `let%quick_test` is not available on the switch's ppx set; use `Quickcheck.test` in a
+  `let%test_unit`.
+- An idempotency layer must not store 401/403 answers: a step-up middleware placed after
+  it refuses the first attempt, and the stored 403 would then be replayed to the retry
+  that carries a valid grant.
