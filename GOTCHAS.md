@@ -1650,3 +1650,8 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   the background (`Clock_ns.every` + `Time_source.advance_by_alarms_by`) for such runs.
   In zsh, `grep --include=*.ml` fails with "no matches found"; quote the glob. `sed` on
   this machine is GNU sed (`sed -i ''` treats `''` as the script).
+- odoc references into sibling libraries (`{!Money.Amount}`, `{!Scheduler_core.Job.S}`,
+  or a functor's `{!Make.validate}` whose argument is a sibling signature) resolve in the
+  workspace but not in a single-repo CI docs build, which installs siblings without their
+  docs; with `ODOC_WARN_ERROR=true` that turns CI red. Write such names as code spans.
+  dune caches odoc warnings, so re-run with a fresh build directory to see them again.
