@@ -1508,6 +1508,6 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `../../examples/<file>` inside `test/<name>.t/run.t`.
 - `Money.Rate.price_to_string` prints the inverse of a terminating price as a fraction
   (`200/217`); fine for evidence, but say so when the text is shown to people.
-- A Quickcheck property for daily caps passed against a deliberately broken cap (keep every
-  action) only once the generator drove several rules through several runs a day; check
-  properties by breaking the code they guard.
+- A daily-cap property needs several rules and several runs per day in one store to mean
+  anything (one evaluation never sees earlier usage); drive them through the runner and
+  mutation-check it by making the cap keep every action.
