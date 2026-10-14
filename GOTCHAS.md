@@ -1596,3 +1596,14 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   beneficiary's postal address. In a single-repo CI checkout the pinned siblings are
   installed without their odoc output, so `{!Money.Currency.t}`-style references to them
   are unresolved warnings; write sibling names in code spans (`[Money.Currency.t]`).
+- griffin-provider, UK rails (2026-10-14): banking-provider's GBP conformance config
+  checks balances against the deposit, but every Griffin sandbox account opens with GBP
+  1m; the adapter now moves that credit to the funding account by book transfer on
+  opening (`Config.empty_sandbox_accounts`), after which 11 of 12 scenarios pass (cards
+  are not offered). payments-core's `Transfer.draft` refuses a Faster Payment above GBP
+  1m, so a test of the provider's own scheme-limit refusal must build the record past
+  it. A simulated payee check must come back exactly as fixed (the suite compares the
+  suggested name), so it cannot be routed through Griffin's simulator, which words close
+  matches itself. An odoc reference like `{!Provider.S.verify_payee}` inside a sibling's
+  signature does not resolve where that signature is included; filter the docs check to
+  this repo's files and write cross-library references as code.
