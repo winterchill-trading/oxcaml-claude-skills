@@ -1582,6 +1582,10 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - Lines with negative amounts (prorated credits) make the per-account sums of an issue entry
   signed; net per account first and post debits for negative nets, or `Ledger.Entry.create`
   refuses a negative posting.
+- `{!Ledger.Entry.t}` and `{!Money.Fee}` resolve in the workspace docs build but warn in
+  CI ("Failed to resolve reference unresolvedroot(Ledger)") because the pinned sibling
+  packages are installed without their odoc files; write references to other packages as
+  code (`[Ledger.Entry.t]`).
 - A `{!Money.Currency}` or `{!Ledger.Entry.t}` reference resolves in the workspace docs
   build (siblings are local) but warns in a single-repo CI build where the sibling is an
   installed package; write cross-library names as code (`[Money.Currency]`). A cold
