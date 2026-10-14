@@ -1324,6 +1324,28 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - `[%message (a.b.c : t)]` labels the field `"(a.b).c"`; give an explicit label
   (`~c:(a.b.c : t)`) for readable expect output.
 
+### pots-and-insights (2026-10-14)
+
+- A library module named like a Core module (`Percent`, `Month`) is shadowed by
+  `open! Core` inside the library's own files: "Unbound value Percent.of_ratio" although
+  the module exists. Pick a name Core does not use (`Percentage`, `Calendar_month`).
+- `Ledger.Entry.same_request` compares `effective_at`, so a retry made later than the
+  first call is not "the same request". To replay a movement, compare kind, code,
+  reference and postings instead.
+- A pure "build an entry checked against balances" helper must look the idempotency key
+  up (`Ledger.Balances.find_entry`) before any balance check; otherwise a retried
+  deposit fails with insufficient funds because the first attempt already moved the
+  money.
+- odoc warns "End of text is not allowed in '[...]'" on a half-open interval written as
+  code (`[[from, until)]`); write "from [from] (inclusive) to [until] (exclusive)".
+- An `.mli` for a functor whose parameter only shapes the result
+  (`module Make (M : Monad.S) (E : Env with type 'a io := 'a M.t) : Job.S ...`) fails
+  with warning 67 (unused functor parameter); name it `_` in the signature.
+- `sed` on this machine is GNU sed: `sed -i ''` treats `''` as the script and fails
+  with "can't read ... No such file"; use `perl -pi -e`. A failing `git add` of a path
+  that no longer exists (after `git mv`) stops an `&&` chain, so later steps in the same
+  command (appending a module alias) silently do not run; check `git status` after.
+
 ## Fiat rails: lightspark-provider (2026-10-14)
 
 - Grid's sandbox platform holds only USD, USDC, USDT and USDB (`GET /config`
