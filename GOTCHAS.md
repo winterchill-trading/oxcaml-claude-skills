@@ -1607,3 +1607,13 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   matches itself. An odoc reference like `{!Provider.S.verify_payee}` inside a sibling's
   signature does not resolve where that signature is included; filter the docs check to
   this repo's files and write cross-library references as code.
+- banking-provider, local addresses and simulations (2026-10-14): a new variant on a type
+  embedded in pinned Stable formats needs a new version (Address V3, Account V3, Event
+  V3) and the old version as `Binable.Of_binable_without_uuid` over a copy of the old
+  variant that raises on the new constructor; bin_prot writes constructor indices, so
+  values of the old constructors have identical bytes in both versions and old records
+  read as the new one. A fake's timers on a synthetic `Time_source` never fire while a
+  conformance suite polls with `Clock_ns` on the wall clock: tick the synthetic clock in
+  the background (`Clock_ns.every` + `Time_source.advance_by_alarms_by`) for such runs.
+  In zsh, `grep --include=*.ml` fails with "no matches found"; quote the glob. `sed` on
+  this machine is GNU sed (`sed -i ''` treats `''` as the script).
