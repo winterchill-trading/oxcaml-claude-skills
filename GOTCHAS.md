@@ -798,6 +798,34 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - Never store `/auth/*` answers under an idempotency key: they carry session tokens and
   the authenticator secret.
 
+- neobank-web (Bonsai): a library module named `Validate` is shadowed by `open! Core`
+  (Core has its own `Validate`), giving "Unbound value Validate.totp" inside the library
+  while tests that open the library afterwards see yours; name it something else (`Check`).
+- A form kept as one `Bonsai.state` map loses fields when two input events arrive before
+  the next render (each handler rebuilds the map from the rendered one). Keep it in a
+  `Bonsai.state_machine` whose action is `(rendered, next)` and apply only the diff
+  (`Map.symmetric_diff`) to the latest model; page code keeps writing
+  `set_form (Map.set form ...)`. A fake-DOM test must still wait one frame (about 40 ms)
+  after typing before clicking, or the click runs the handler built from the old value.
+- Fake-DOM tests: after `location.hash = ...` the previous page is still in the DOM until
+  the next render, so `querySelector("select[name=account]")` can hit the old page's
+  select; wait for an element unique to the new page first.
+- jsoo: a `<script>` element has no typed `onload`/`onerror`; use
+  `Dom_html.addEventListener script Dom_html.Event.load`. `setTimeout` returns
+  `Dom_html.timeout_id`, not `timeout_id_safe`. `JSON.stringify` is `Json.output`.
+  Third-party iframes (identity SDK, card display plugin) need a `Vdom.Node.widget` host
+  so diffing leaves them alone; give it an `update` that re-inits when the DOM id
+  changes.
+- QR codes: a pure OCaml encoder (byte mode, versions 1-40, penalty mask choice) matches
+  the qrcodegen Python package module for module; segno 1.6 draws different modules for
+  the same input and mask, so do not use it as the reference. OpenCV's
+  `QRCodeDetector` (opencv-python-headless in a scratch venv) decodes the output.
+- neobank-api on the fake provider decides KYC (`/sandbox/kyc-decision`) only after both
+  hosted steps were started; a hosted `kyc/start` keeps the step in `steps_to_complete`
+  until the provider reports. Its `pan-token` answers 202 with a `Sca_required` body
+  (the provider's challenge), not an error. The live web smoke runs in 5 s against the
+  memory store with `-password-iterations 1000`.
+
 ## Databases (2026-10-13)
 
 - `pgx`/`pgx_async` (pure-OCaml Postgres) cannot build on the OxCaml switch (pins
