@@ -1399,7 +1399,6 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   and `module X = Local_x` after it; dune's `Lib__.X` alias is not reachable from inside.
 - `T=" @a/all @b/all"; dune build $T` fails under zsh ("too many s-expressions"): zsh does
   not word-split. Use a bash array.
-- `sed -i ''` treats `''` as a file here (GNU sed): use `sed -i`.
 - Another library adopted a `Stable.V2` minutes after it was pushed; re-pinning that V2 for a
   follow-up in the same change set then moved its digests. Say "unreleased, may move" in the
   changelog until the version is tagged.
