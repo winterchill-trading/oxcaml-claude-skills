@@ -761,6 +761,42 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - `dune promote <repo>` is not a valid call; with a per-agent `DUNE_BUILD_DIR` run plain
   `dune promote` from the workspace root (it only sees your build directory). `sed` in
   this shell is GNU sed: `sed -i ''` treats `''` as the script.
+- neobank-api: `banking-provider`'s `initiate_transfer` takes a `Draft` (the fake refuses
+  anything else with "only outgoing drafts can be initiated") while `payments-core`'s
+  `require_sca` moves the transfer to `Awaiting_sca`; keep the SCA bookkeeping on your
+  copy and send `{ t with status = Draft }` with the authorization recorded.
+- Waiting for a provider call's events to land: consume `Provider.S.events` with
+  `Pipe.iter_without_pushback`, enqueueing each event on one `Throttle.Sequencer` as it is
+  read; a drain is then `Scheduler.yield_until_no_jobs_remain ()` followed by an empty job
+  on the sequencer. With `Pipe.iter` (one event at a time) the drain returned early as
+  soon as the store was PostgreSQL, because socket waits are not Async jobs; the memory
+  store hid it.
+- The fake provider's timestamped webhook signatures expire after 5 minutes of its
+  clock: a test that advances a synthetic clock past that sees redeliveries refused at the
+  signature check (401), before the inbox. Redeliver within the window to test dedup.
+- A memory store and a Postgres store print identical conformance transcripts only if
+  the memory side copies the database rules exactly: skip a repeated event id like the
+  UNIQUE key does, sort text with `COLLATE "C"` in SQL and byte order in OCaml, and build
+  the same error sexps on both sides.
+- `Time_source.every` on a synthetic `Time_source` with `advance_directly`: whether a
+  periodic job (hourly pruning) has run when a test looks is not deterministic; print
+  only what both outcomes share (a 401, not `session_expired` versus `no_session`).
+- A quickcheck property over retry counts found `Time_ns.Span.scale 1s (2 ** n)` raising
+  `Float.iround_nearest_exn ... too large` past n = 35; a day of retries reaches hundreds
+  of attempts. Clamp the exponent.
+- SEPA end-to-end ids allow `a-z A-Z 0-9 / - ? : ( ) . , ' +` and space but not `_`, so
+  ids that double as end-to-end ids use `-` (`tr-<hex>`).
+- A record module's `.mli` can re-export a `Stable.V1` record without repeating its
+  fields: `include module type of struct include Stable.V1 end` inside the signature.
+- Embedding SQL migrations in a library: a dune rule with
+  `(deps (glob_files %{project_root}/migrations/*.sql))` running a tiny generator
+  executable from the same repo; works in the shared workspace and in a single-repo CI
+  checkout.
+- TOTP codes are accepted one step either side and each step once per customer; scripts
+  that need several codes in a row (login, then a payment) can use the codes for the
+  previous, current and next steps instead of waiting 30 s.
+- Never store `/auth/*` answers under an idempotency key: they carry session tokens and
+  the authenticator secret.
 
 ## Databases (2026-10-13)
 
