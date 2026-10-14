@@ -1124,3 +1124,15 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - An idempotency layer must not store 401/403 answers: a step-up middleware placed after
   it refuses the first attempt, and the stored 403 would then be replayed to the retry
   that carries a valid grant.
+- scheduler-core: binding a functor result to the library module's own name
+  (`module Runner = Runner.Make (M) (Job) (Store)`) hides the library's
+  `Runner.Command_error` and `Runner.Execution`; re-export them inside the result
+  signature (`module Execution = Execution` is accepted in the functor's `sig`).
+- scheduler-core: a run claim and a "missed"/"skipped" settlement must not share one
+  claim primitive. Taking over a stale claim and then settling it as skipped loses a
+  payment the crashed run already made (found by a Quickcheck run with crashes, pauses
+  and skips). Settle unclaimed dates with an atomic insert that fails when a run claim
+  exists, and replay the job for any stale run claim, even on a paused schedule.
+- `Time_float_unix.Zone.find_exn` needs `core_unix.time_float_unix` in the test
+  library's `libraries`; the library itself can stay on `core` by taking a
+  `Time_float.Zone.t`.
