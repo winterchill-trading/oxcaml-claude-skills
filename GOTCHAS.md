@@ -1280,6 +1280,29 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `~max_retries:0`, and answer account opening with an `open` account so
   `wait_until_open` never sleeps.
 
+### rewards-core (2026-10-14)
+
+- Inside `module Make (M : Monad.S) (Store : Store.S ...)` the parameter hides the
+  library's own `Store` module, so `Store.Append.Appended` is unbound there; alias the
+  module before the functor (`module Results = Store`). The same happens in tests that
+  bind `module Engine = Engine.Make (...)`: `Engine.Outcome` disappears; name the
+  instance something else.
+- Proportional clawback rounded down per refund lets a customer keep every point with a
+  series of refunds each too small for one point, if a zero-point refund is not booked
+  (the next refund is then measured from the wrong refunded total). Book every refund,
+  at zero points if need be, and compute the cumulative share from the recorded refunds.
+- First-in first-out by sequence number is wrong for expiry lots when entries arrive out
+  of event-time order (a late settlement): after an expiry run, lots with earlier expiry
+  dates stayed open. Spend from the earliest expiry date instead (a `Date.Map` of open
+  points); a Quickcheck property "after an expiry run nothing more is due" found it.
+- A first-class module argument cannot use an inline signature with deriving
+  (`(module M : sig type t = a [@@deriving bin_io] end)` is "invalid package type");
+  declare `module type Stable = sig type t [@@deriving bin_io, sexp, equal] end` and
+  take `(module M : Stable with type t = a)`.
+- A new repository's first CI run sat queued for over ten minutes on shared runners;
+  with `cancel-in-progress`, keep committing locally and push once that cold run has
+  saved the switch cache.
+
 ## Fiat rails: lightspark-provider (2026-10-14)
 
 - Grid's sandbox platform holds only USD, USDC, USDT and USDB (`GET /config`
