@@ -1511,3 +1511,36 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - A daily-cap property needs several rules and several runs per day in one store to mean
   anything (one evaluation never sees earlier usage); drive them through the runner and
   mutation-check it by making the cap keep every action.
+
+### chain-books (2026-10-14)
+
+- Ledger account ids and idempotency keys are capped at 128 characters, and an account id
+  must leave room for the reserved `/pending` suffix (120). Ids built from parts
+  (`chain:<binding>:custody:<address>:<venue>`, `chain:<binding>:<event id>`) need a cap
+  on every part; a 66-character transaction hash plus a prefix already overflows, so keep a
+  hash prefix (32 hex digits) in event ids.
+- Ledger entries are single-currency: a spot trade is two entries (base and quote legs)
+  through a clearing account, each under its own key.
+- `Money.Rate.create` refuses `base = quote`; a valuation that converts every asset into
+  a reporting currency must treat the same-currency case itself (price one).
+- Hyperliquid info answers carry more digits than the books: spot USDC `total` has 8
+  decimals (perp USDC has 6), `userFunding` `szi` has 10 (an hourly average) and
+  `vaultWithdraw` amounts can have 10. Decode them as exact rationals (`Q`) rather than
+  through `Hl_protocol.Size`/`Usd` (8-digit fixed point), and round once to the asset.
+- Hyperliquid funding items carry an all-zero hash: identify them by time and coin. A
+  transfer between two sub-accounts of one owner appears in both histories; derive the
+  event id from the record (time, hash, type), never from the reading address, or it
+  books twice.
+- `userNonFundingLedgerUpdates` delta types seen on mainnet in October 2026: deposit,
+  withdraw (amount plus a separate 1 USDC fee), internalTransfer, subAccountTransfer,
+  accountClassTransfer, spotTransfer, send (between dexes and spot, `""` = default perp
+  dex), vaultCreate/Deposit/Withdraw/Distribution, cStakingTransfer, spotGenesis,
+  gossipPriorityGasAuction, liquidation, borrowLend, activateDexAbstraction. Public info
+  requests need no key; the leaderboard at stats-data.hyperliquid.xyz gives active
+  addresses to sample.
+- ocamlformat refuses a file ("misplaced documentation comments - warning 50") when a doc
+  comment directly follows a `val` with no blank line; separate items with blank lines.
+- `[@sexp.opaque]` written after a field type is ignored (the derivation asks for
+  `Q.sexp_of_t`); a small module with `type t = Q.t` and its own `sexp_of_t` is cleaner.
+- The GitHub API quota shared by all agents ran out during this repository's first
+  pushes; CI status could not be checked from here.
