@@ -1136,3 +1136,25 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - `Time_float_unix.Zone.find_exn` needs `core_unix.time_float_unix` in the test
   library's `libraries`; the library itself can stay on `core` by taking a
   `Time_float.Zone.t`.
+
+### auth-kit (2026-10-14)
+
+- Argon2: the opam `argon2` package installs cleanly on the ox switch (it only adds
+  ctypes-foreign bindings) but its calls hold the OCaml runtime lock, so a 17 ms hash
+  stalls an Async scheduler even under `In_thread.run`. A 60-line C stub over
+  `argon2_ctx` that copies its inputs and wraps the call in
+  `caml_enter_blocking_section` avoids that and gives access to the secret key and
+  associated data (needed for the RFC 9106 vector). Link it with dune-configurator's
+  `Pkg_config.query ~package:"libargon2"`: Homebrew's `argon2` bottle and Debian's
+  `libargon2-dev` both ship `libargon2.pc`; CI needs `apt-get install libargon2-dev`.
+- Inside a local open `Time_ns.( until > now )`, `now` is `Time_ns.now : unit -> t`,
+  not your variable: "This expression has type unit -> Alternate_sexp.t". Write
+  `Time_ns.( > ) until now`.
+- `Sexpable.Of_stringable_with_uuid` does not exist (only the Binable one does); use
+  `Sexpable.Of_stringable` next to `Binable.Of_stringable_with_uuid`. Core's `Bytes`
+  has no `iteri`.
+- Doubling a lock with `Time_ns.Span.scale_int first (1 lsl n)` overflows silently for
+  large n and can come back positive but small; double step by step and stop at the cap.
+- A password hash read back from storage is untrusted input: check its Argon2 memory
+  and pass counts against limits before deriving, or one damaged row makes the server
+  allocate gigabytes.
