@@ -875,6 +875,25 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - A repo with no sibling dependencies builds with `dune build --root .` and is immune to
   other agents' half-written files; `@fmt --auto-promote` with `--root .` formats only it.
 
+- striga-provider (2026-10-14): in one conformance run the sandbox approved KYC (tier 1
+  `APPROVED`) and provisioned only the crypto accounts; EUR and USDC never appeared, not
+  even an hour later, so every EUR scenario failed at `open_account`. A missing EUR
+  account is not always "just early": check once much later before blaming the adapter,
+  and make each scenario's wait come from the suite's timeout, not a shorter adapter
+  default.
+- banking-provider moved the simulator interface from `Provider.Sandbox` to `Sandbox.S`
+  (and `Kyc_decision` with it); an adapter's `.mli` needs
+  `include Sandbox.S with type t := t` and the `Conformance.Make (P) (P)` functor takes the
+  adapter twice.
+- Striga takes no idempotency keys and has no field for a caller's ids, so "create is
+  idempotent" lives entirely in the adapter's store; a lost create response is recovered
+  by `get-by-email` (e-mail is unique per user at Striga) before creating again.
+- The simulator's deposit answers without a transaction id; tag it with a unique
+  reference and find it on the statement by `memo`. Its card authorization says only
+  APPROVED/DECLINED; the decline reason is on the card statement (`declineDetails`).
+- macOS `sed -i ''` fails when GNU sed is first on PATH (`can't read s/...`); use
+  `sed -i` there or a short Python edit.
+
 ## Research sources (2026-10-13)
 
 - EUR-Lex, the EPC site and the FATF site refuse automated fetches. Use the EU
