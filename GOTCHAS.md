@@ -1383,6 +1383,27 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - `sed -i ''` (BSD form) fails on this machine because GNU sed comes first in `PATH`
   (`can't read s/...`); use `sed -i` or a small Python edit.
 
+### payments-core and banking-provider UK, US and network additions (2026-10-14)
+
+- Growing a stable variant without moving any digest: keep the original constructors in a
+  `Repr` type, give `Stable.V1` the current type with
+  `Binable.Of_binable_without_uuid [@alert "-legacy"] (Repr)`, and make the unversioned
+  `bin_io` V1 as well, so records elsewhere that embed the type keep their pinned digests.
+  The V1 writer raises on the new constructors; append them at the end of V2 so V1 bytes are
+  also V2 bytes (test that equality).
+- Records and variants then get V2 for free: `type t = V2.t = { f : Foo.Stable.V1.t; ... }`
+  re-exports the same type with V1 field formats, because the versions are aliases of one
+  type. Only the leaves that gained constructors need a `Repr`.
+- A new top-level module in a library others `open` (payments-core's `Uk_account`) shadows a
+  same-named local module in their files. Fix with `module Local_x = X` before the `open`
+  and `module X = Local_x` after it; dune's `Lib__.X` alias is not reachable from inside.
+- `T=" @a/all @b/all"; dune build $T` fails under zsh ("too many s-expressions"): zsh does
+  not word-split. Use a bash array.
+- `sed -i ''` treats `''` as a file here (GNU sed): use `sed -i`.
+- Another library adopted a `Stable.V2` minutes after it was pushed; re-pinning that V2 for a
+  follow-up in the same change set then moved its digests. Say "unreleased, may move" in the
+  changelog until the version is tagged.
+
 ## Fiat rails: lightspark-provider (2026-10-14)
 
 - Grid's sandbox platform holds only USD, USDC, USDT and USDB (`GET /config`
