@@ -1544,3 +1544,21 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `Q.sexp_of_t`); a small module with `type t = Q.t` and its own `sexp_of_t` is cleaner.
 - The GitHub API quota shared by all agents ran out during this repository's first
   pushes; CI status could not be checked from here.
+
+### billing-core (2026-10-14)
+
+- An engine operation with several store steps (cancel: save the subscription, raise the
+  final invoice, issue a credit note) must not let a refusal in a later step drop what the
+  earlier steps produced: the subscription was saved as cancelled, the final invoice's ledger
+  entry was lost with the error, and a retry was refused as "already cancelled". Found by a
+  Quickcheck property that checks the receivable against open invoices after every step.
+  Make each step idempotent (derived ids, numbers per document, "already done" treated as
+  success) so a retry returns the same entries.
+- Derive a payment's ledger entry from the invoice after the payment is recorded (keep on
+  the invoice when it was written off), not from the invoice before: a retried payment is a
+  duplicate and must still yield the same entry.
+- Core has no `String.Pair`; key a table on a composite string (with a separator that ids
+  cannot contain) or use `Hashtbl.Poly`.
+- Lines with negative amounts (prorated credits) make the per-account sums of an issue entry
+  signed; net per account first and post debits for negative nets, or `Ledger.Entry.create`
+  refuses a negative posting.
