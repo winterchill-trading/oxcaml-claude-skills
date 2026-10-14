@@ -22,8 +22,13 @@ Or copy a skill directory into `~/.claude/skills/`.
 | `skills/async-http-websocket` | cohttp-async + async_websocket servers and clients, same-port upgrades, logging in tests |
 | `skills/janestreet-ocaml-style` | Writing Base/Core/Async code the Jane Street way, ppx_jane, expect tests |
 | `skills/banking-standards` | Must-follow rules for the banking libraries (ledger invariants, idempotency, SEPA ids, timeouts and reason codes, SCA, KYC, cards, redaction), each pointing at the banking research notes in specs |
+| `skills/agents-md` | Writing and maintaining `AGENTS.md` files in the org repositories: root template, subdirectory files, content rules, refreshing after a change |
 
 `GOTCHAS.md` is the running log; entries are promoted into skills once stable.
+
+`AGENTS.md` is the workspace-wide guide for agents (workspace model, repository map,
+cross-cutting rules, CI model) and the root agent guide of this repository; every org
+repository's own `AGENTS.md` links to it.
 
 Each skill opens with outcomes, 3-5 reference modules from the org repos and short
 exercises for checking a fresh session against it.
