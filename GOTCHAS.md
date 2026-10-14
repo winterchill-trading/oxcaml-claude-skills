@@ -1432,3 +1432,30 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - `sed -i ''` (the BSD form) fails on this machine because `sed` is GNU: the empty
   string is read as the script and the expression as a file name ("can't read s/...").
   Use `sed -i`.
+
+### payouts-core (2026-10-14)
+
+- payments-core keeps adding rails and payee destinations (the UK rails arrived while
+  this library was written). A wildcard in a match over `Beneficiary.Destination.t`
+  fails the dev build with warning 11 (unused case) when the match is already complete,
+  and leaving it out fails with warning 8 when a constructor is added. Keep the
+  wildcard under `match[@warning "-11"] d with`, with a comment saying why.
+- `Rail` and `Beneficiary` derive their unversioned `bin_io` from `Stable.V1`, which
+  raises on UK values. A new persisted type that embeds them must use `Stable.V2`.
+- `M.return (match x with ... -> Inserted)` in a functor over `Monad.S` does not see
+  the expected result type, so constructors of another module are unbound; annotate the
+  match: `(match ... : Store.Insert_result.t)`.
+- Inside `Make (M) (Store : Store.S ...)` the argument hides the library's own `Store`
+  module and its result types; alias the module before the functor
+  (`module Results = Store`).
+- `[%message "..." ~max_length]` without an annotation assumes a string payload: "This
+  expression has type int but an expression was expected of type string". Write
+  `(max_length : int)`. `[%message ("duplicate " ^ what)]` is parsed as a labelled
+  expression too; use `Or_error.errorf`.
+- A pure ledger fixture built with `Balances.apply` refuses a record whose
+  `recorded_at` is earlier than the last one ("recorded_at goes backwards"), and a
+  zero-amount posting; test helpers must book in time order and skip empty deposits.
+- A broken `dune` file in another repository of the workspace (a sibling agent's work in
+  progress) can stop `dune build --root .. @<repo>/runtest` before this repository's
+  tests run, and the filtered output looks like a pass. Check the build log for the
+  other repository's error, or that a deliberately failing expectation shows up.
