@@ -1706,3 +1706,15 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   start from the exact rational: rounding an already-rounded eight-decimal value again
   can differ (double rounding). A private record's fields used from another module on a
   value whose type is not yet known need qualifying (`period.Period.to_date`).
+
+## Service code (2026-10-15)
+
+- An Async `Throttle.Sequencer` closes for good after one job raises; catch inside the
+  job and re-raise outside the sequencer.
+- `x |> Option.first_some y` prefers `y`, not `x`.
+- A duplicated `val` in an `.mli` surfaces as warning 32 "unused value", not as a
+  duplicate-declaration error.
+- Inside `let open Int64 in`, a local helper named `to_int32` is shadowed by Int64's.
+- pg-async needs `Type.nullable` explicitly when a codec is used outside `let%map_open`.
+- In zsh an unmatched glob aborts the whole command chain; an apostrophe inside a
+  single-quoted `printf` breaks a script: run `bash -n` before committing scripts.
