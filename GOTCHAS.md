@@ -1346,6 +1346,24 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   that no longer exists (after `git mv`) stops an `&&` chain, so later steps in the same
   command (appending a module alias) silently do not run; check `git status` after.
 
+### kyc-core KYB (2026-10-14)
+
+- Piping `dune build ... --auto-promote` into `head` can kill dune with SIGPIPE before it
+  promotes: the build reports diffs, the files stay unchanged, and `@fmt --auto-promote`
+  silently formats nothing. Redirect to `/dev/null` (or a file) when promoting.
+- A broken stanza in any sibling repository fails `dune build --root ..` for everyone. A
+  repository with no sibling dependencies can build itself with `--root .` (and its own
+  `DUNE_BUILD_DIR`) while the workspace is broken.
+- `Comparable.Make_plain` gives no `t_of_sexp`; an `.mli` that says
+  `include Comparable.S with type t := t` fails ("Share.Map: t_of_sexp required"). Use
+  `Comparable.S_plain` for sexp_of-only types.
+- In a helper like `let diff field eq get = ...` over a variant, only the first
+  constructor is disambiguated by the annotation; later ones need the module path
+  (`Field.Registration_number`) or the build fails with "Unbound constructor".
+- Ownership through chains multiplies basis points; a 10^12 scale keeps two
+  intermediates exact and stays far inside 63 bits (10^12 x 10^4), which avoids a
+  bignum dependency for threshold checks.
+
 ## Fiat rails: lightspark-provider (2026-10-14)
 
 - Grid's sandbox platform holds only USD, USDC, USDT and USDB (`GET /config`
