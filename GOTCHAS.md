@@ -1279,3 +1279,24 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   a stateful in-memory Griffin keyed by method and path segments; pass
   `~max_retries:0`, and answer account opening with an `open` account so
   `wait_until_open` never sleeps.
+
+## Fiat rails: lightspark-provider (2026-10-14)
+
+- Grid's sandbox platform holds only USD, USDC, USDT and USDB (`GET /config`
+  `supportedCurrencies`), so banking-provider's EUR/IBAN conformance scenarios stop at
+  `open_account`; cover the money properties in a USD walk instead.
+- USD to EUR quotes fail `400 MISSING_MANDATORY_USER_INFO` until
+  `senderCustomerInfo.PURPOSE_OF_PAYMENT` is sent.
+- `totalBalance` on an internal account stayed at the deposited total after a settled
+  payout and a conversion; use `balance`. `GET /internal-accounts/{id}/balance-changes`
+  answered 501 for customer accounts; build statements from `/transactions`.
+- A conversion between a customer's own accounts appears as an `INCOMING` transaction on
+  the bought side; match swaps by `quoteId` before treating it as a deposit.
+- `POST /webhooks/test` answers `WEBHOOK_ENDPOINT_NOT_SET` without a dashboard URL, so a
+  provider ping cannot pass without changing platform settings.
+- An IBAN ending in the documented `011` payout suffix failed as
+  `COUNTERPARTY_POST_TX_FAILED` (refunded), not `ACCOUNT_INVALID`.
+- Inside `Deferred.Or_error.Let_syntax`, `return (x : _ Or_error.t)` nests the result;
+  write `Deferred.return`. In a test, `Pipe.close_read` then `Pipe.read_all` yields nothing;
+  drain with `Pipe.read_now'` first, and give the poller a long interval so its requests do
+  not interleave with a fake transport's expect output.
