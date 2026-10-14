@@ -1586,3 +1586,9 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   build (siblings are local) but warns in a single-repo CI build where the sibling is an
   installed package; write cross-library names as code (`[Money.Currency]`). A cold
   `opam install odoc` also needs `result` listed explicitly.
+- lightspark-provider (US rails): the Grid sandbox gives each USD account a random routing
+  number; 4 of 25 passed the ABA check digit, so `Aba.of_string` refuses most of them and
+  the USD conformance account scenarios time out there. Wire payouts need the
+  beneficiary's postal address. In a single-repo CI checkout the pinned siblings are
+  installed without their odoc output, so `{!Money.Currency.t}`-style references to them
+  are unresolved warnings; write sibling names in code spans (`[Money.Currency.t]`).
