@@ -1366,3 +1366,8 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   write `Deferred.return`. In a test, `Pipe.close_read` then `Pipe.read_all` yields nothing;
   drain with `Pipe.read_now'` first, and give the poller a long interval so its requests do
   not interleave with a fake transport's expect output.
+- `opam install odoc` on a fresh ox switch fails with `Library "result" not found` while
+  building odoc.3.2.0+ox2: the package does not declare `result`, which the local switch
+  only had transitively. CI docs steps install `result odoc` together. Seven repos were
+  red for an hour because the step was added without a Linux run first; add a CI step,
+  then watch one run before rolling it out.
