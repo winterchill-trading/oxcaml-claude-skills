@@ -1364,6 +1364,25 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   intermediates exact and stays far inside 63 bits (10^12 x 10^4), which avoids a
   bignum dependency for threshold checks.
 
+### accounting-sync (2026-10-14)
+
+- A module that includes `Identifiable.Make (T)` gets `t`-typed comparison operators in
+  scope for the rest of the file: `if attempt < 1` on an int fails with "expected of
+  type t". Write `Int.( < ) attempt 1`.
+- `dune promote --root .. <file>` with a per-agent `DUNE_BUILD_DIR` said "Nothing to
+  promote"; `dune promote --root ..` without file arguments promotes only the
+  corrections in that build directory, which is what an agent wants.
+- `dune build --root .. @<repo>/all` also reports errors from other repos' stanzas (a
+  sibling mid-edit); decide success by whether any `File "<repo>/...` block appears.
+- A variant constructor is not a function: `let opened = Ledger.Record.Event.Account_opened`
+  fails ("expects 1 argument(s)"); eta-expand.
+- `ledger` entries are single-currency; a multi-currency transaction is a `Linked`
+  record. Export keys per (record, currency) and map pending sub-accounts
+  (`<id>/pending`) through `Account_id.parent_of_pending`, or every hold shows up as a
+  movement between two accounts.
+- `sed -i ''` (BSD form) fails on this machine because GNU sed comes first in `PATH`
+  (`can't read s/...`); use `sed -i` or a small Python edit.
+
 ## Fiat rails: lightspark-provider (2026-10-14)
 
 - Grid's sandbox platform holds only USD, USDC, USDT and USDB (`GET /config`
