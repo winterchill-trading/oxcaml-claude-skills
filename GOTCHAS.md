@@ -1459,3 +1459,34 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   progress) can stop `dune build --root .. @<repo>/runtest` before this repository's
   tests run, and the filtered output looks like a pass. Check the build log for the
   other repository's error, or that a deliberately failing expectation shows up.
+
+### statements (2026-10-14)
+
+- `opam install --switch 5.2.0+ox --dry-run camlpdf` plans exactly one package (camlpdf
+  2.9) and touches nothing else, so it is safe to install; a statement writer did not
+  need it (objects, xref and a TrueType subset are a few hundred lines).
+- PDF's standard 14 fonts only cover WinAnsiEncoding; Cyrillic needs an embedded font.
+  The simplest embedding is a Type0 font with `/Encoding /Identity-H`, a `CIDFontType2`
+  descendant with `/CIDToGIDMap /Identity`, and a subset that keeps every glyph id but
+  empties the unused glyphs (no cmap rewrite). `FontFile2` needs only `glyf`, `head`,
+  `hhea`, `hmtx`, `loca`, `maxp` (plus `cvt `, `fpgm`, `prep` if present); set
+  `indexToLocFormat` to 1 when writing a long `loca`, and include composite glyph
+  components (é is often built from e and an accent). `pdftotext` extracts the text only
+  with a `/ToUnicode` CMap.
+- No Helvetica AFM file was on the machine. Liberation Sans (bundled with LibreOffice) is
+  metric-compatible with Arial and so with Helvetica for Latin text, but Arial differs
+  from the Helvetica AFM for macron, mu, middle dot, plus-minus and division sign.
+- Noto Sans (OFL 1.1, no Reserved Font Name) covers the Kyrgyz letters ң ө ү; Liberation
+  Sans 2.x lacks U+20BD and declares the Reserved Font Name "Liberation".
+- odoc fails with "End of text is not allowed in '[...]' (code)" on a code span holding
+  an escaped backslash such as `[\\]` in an `.mli` comment; describe it in words.
+- macOS ships bash 3.2: `declare -A` (associative arrays) fails under `set -u` with
+  "unbound variable"; use a `case` function in scripts meant to run locally and in CI.
+- `sed` on this machine is GNU sed, so `sed -i '' 's/...'` fails with "can't read
+  s/...": use `sed -i 's/...'`.
+- `{ a with f1 = ...; f2 = ...; f3 = ... }` listing every field is warning 23 (useless
+  `with`), an error in the dev profile; build the record directly.
+- A ledger hold captured with `~release_remainder:true` is one entry: on a statement of
+  the account alone (posting basis) it shows as money in for the released remainder,
+  with the settlement's code. Netted (account plus pending sub-account) it is one line
+  for the captured amount, which matches camt.053's booked entries exactly.
