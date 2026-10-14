@@ -1490,3 +1490,24 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   the account alone (posting basis) it shows as money in for the released remainder,
   with the settlement's code. Netted (account plus pending sub-account) it is one line
   for the captured amount, which matches camt.053's booked entries exactly.
+
+### treasury-rules (2026-10-14)
+
+- A sibling dependency in mid-change (a new constructor in payments-core that risk-rules
+  does not match yet) fails the dev-profile workspace build of every repo above it with
+  warning-as-error partial matches. `dune build --profile release --root .. @<repo>/runtest`
+  keeps your own tests running meanwhile; opam-pinned CI builds siblings in release mode.
+- The `sed` on PATH here is GNU sed: `sed -i '' 's/a/b/' f` fails with "can't read
+  s/a/b/: No such file or directory". Use `sed -i 's/a/b/' f`.
+- A store functor over any monad (`Store.S with type 'a io := 'a M.t`) is tested
+  direct-style with `Monad.Ident` and an in-memory store whose `type 'a io = 'a`.
+- Two validated string ids built the same way (`Of_binable_without_uuid` over `string`)
+  have the same `[%bin_digest]`; the digest pins the wire shape, not the type's identity.
+- A cram test that reads files from another directory of the repo: `(cram (deps
+  %{bin:<name>} (glob_files %{project_root}/examples/*.sexp)))` in `test/dune`, and
+  `../../examples/<file>` inside `test/<name>.t/run.t`.
+- `Money.Rate.price_to_string` prints the inverse of a terminating price as a fraction
+  (`200/217`); fine for evidence, but say so when the text is shown to people.
+- A Quickcheck property for daily caps passed against a deliberately broken cap (keep every
+  action) only once the generator drove several rules through several runs a day; check
+  properties by breaking the code they guard.
