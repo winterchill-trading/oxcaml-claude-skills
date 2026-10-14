@@ -880,7 +880,9 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   even an hour later, so every EUR scenario failed at `open_account`. A missing EUR
   account is not always "just early": check once much later before blaming the adapter,
   and make each scenario's wait come from the suite's timeout, not a shorter adapter
-  default.
+  default. A second run with the exact Estonian profile (EE residence and mobile) that
+  had been given EUR earlier failed the same way, so it is not the person's country;
+  suspect the sandbox application's Payment Accounts setting.
 - banking-provider moved the simulator interface from `Provider.Sandbox` to `Sandbox.S`
   (and `Kyc_decision` with it); an adapter's `.mli` needs
   `include Sandbox.S with type t := t` and the `Conformance.Make (P) (P)` functor takes the
