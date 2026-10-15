@@ -903,6 +903,14 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `/wallets/get/account` on EUR answers 403 `SCA_REQUIRED` (`NO_SESSION`). One EUR enrich
   body had no `accountId`: a required ppx_yojson_conv field fails with "record elements
   were undefined", so keep ids optional until a live body confirms them.
+- striga-client (2026-10-15): completing a 2FA reset revokes the user's SCA session, so EUR
+  and USDC vanish from the wallet listing again and account reads go back to 403 `30070`.
+  Passkeys are off for the sandbox application (`999998`), so passkey calls can only be
+  pinned offline. When a client's variant type is matched exhaustively by a dependent
+  repo (`Webhook.Event.t` in striga-provider), add new kinds as a separate type
+  (`Webhook.Notice.t`) rather than new constructors, or the dependent's CI breaks.
+  `type nonrec t = { x : t option }` inside a nested module with `[@@deriving yojson]`
+  still binds the inner `t`; alias the outer type first (`type consent = t`).
 
 ## Research sources (2026-10-13)
 
