@@ -911,6 +911,24 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   (`Webhook.Notice.t`) rather than new constructors, or the dependent's CI breaks.
   `type nonrec t = { x : t option }` inside a nested module with `[@@deriving yojson]`
   still binds the inner `t`; alias the outer type first (`type consent = t`).
+- striga-provider (2026-10-15): the "EUR never provisioned" conformance failures were the
+  SCA-session listing filter, not the sandbox application: open an SMS login session
+  after KYC approval and EUR is listed at once (13 of 14 scenarios then pass). The
+  simulator's deposit memo is `SEPA_PAYIN_COMPLETED <amount> EUR <reference>`, so an
+  exact memo match never finds it; match the reference as a suffix.
+- Striga SEPA payouts need a BIC (`400 00002 "Invalid BIC, Provide exactly one of
+  whitelistedIbanId OR destination.iban + destination.bic"`), and an IBAN of the same
+  application is refused as SEPA (`31003`, "use the inter/intra methods"). A non-numeric
+  OTP fails validation (`400 00002 "Invalid verificationCode"`), not `41009`/`41010`.
+  The 3-D Secure password charset excludes `-` and `@` (docs list
+  `A-Z a-z 0-9 ! " # ; : ? & * ( ) + = / \ , . [ ] { }`), so UUID-based passwords are refused.
+  E-mail local parts over 64 characters fail as `00002 "Invalid e-mail ID"`.
+- An intraledger move carries the same transaction id and `txType` on the payer's and
+  the payee's statements: an event id built from id + type alone dedups the payee's
+  credit away. Add the side to the id.
+- OxCaml: `String.exists p ~f:(String.mem chars)` fails with "This value is local but is
+  expected to be global ... partial application" in a tail position; eta-expand
+  (`~f:(fun c -> String.mem chars c)`).
 
 ## Research sources (2026-10-13)
 
