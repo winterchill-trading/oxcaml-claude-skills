@@ -1752,3 +1752,41 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - pg-async needs `Type.nullable` explicitly when a codec is used outside `let%map_open`.
 - In zsh an unmatched glob aborts the whole command chain; an apostrophe inside a
   single-quoted `printf` breaks a script: run `bash -n` before committing scripts.
+
+### sanctions-screening (2026-10-16)
+
+- Screening evasion through normalisation (found in review, fixed): a fold that turns
+  every non-letter into a separator lets a zero-width space or soft hyphen split a listed
+  name (`Ole<ZWSP>g` became `ole g`), deleting letters of scripts without a
+  transliteration table hides a name inside foreign letters, and transliterating
+  Cyrillic or Greek look-alikes by sound turns a disguised `Рaramonov` into `raramonov`.
+  Drop Default_Ignorable code points (Python's `unicodedata` lacks the property; copy the
+  ranges from DerivedCoreProperties.txt), keep unmapped letters, fold NFKD outside the BMP
+  too (mathematical letters), and screen a second, visual reading for words that mix
+  scripts or digits. Keep a file of disguises every test must still hit.
+- `[@zero_alloc]` rejects a local helper closure even when it only reads the enclosing
+  function's argument ("allocation of 40 bytes for closure"); lift it to the top level
+  with the value as a parameter. Returning two ints from a zero-alloc function: pack them
+  into one int (`sum lsl 8 lor count`).
+- A doc comment containing `*)`, e.g. "categories L* and N*)", ends the comment early and
+  gives a bare "Syntax error" at that column.
+- Jaro-Winkler on whole token-sorted names scores 870 to 885 for unrelated people who
+  share a first word (prefix bonus plus matching characters). Score names by token
+  alignment (each token's best Jaro-Winkler partner, a floor below which a pair counts 0)
+  and use edit similarity, not Jaro-Winkler, on the whole string.
+- OFAC's `SDN_ADVANCED.XML` is about 130 MB; building only the trees at depth 2 (one
+  `DistinctParty`, one `Location`, one value set at a time) parses it in one pass, and
+  `DateOfIssue`'s `Year`/`Month`/`Day` are the only depth-2 elements with those names. The
+  legacy `SDN.CSV` ends with a DOS end-of-file byte (0x1A) and keeps dates of birth,
+  nationality and weak aliases (`a.k.a. 'X'`) inside the remarks column.
+- The OFSI consolidated list URL still served a file in October 2026 (its "Last Updated"
+  said 03/06/2026) although the list closed on 28 January 2026.
+- `core.autocrlf=input` is set on this machine: CRLF list fixtures (the published
+  formats) are silently committed with LF. Add `fixtures/** -text` to `.gitattributes`
+  and `git add --renormalize`.
+- In the ox Core, `String.Table.of_alist_reduce` and `String.Set.union` do not exist
+  (use `Hashtbl.add` in a loop and `Set.union`), and `[%sexp (T list) (e)]` is not a
+  ppx_sexp_value form (`[%sexp (e : T list)]`).
+- To compare a memory store and a PostgreSQL store in one expect test, run the
+  conformance transcript on each and read it back with `[%expect.output]`; compare the
+  two strings and print only "same transcript" or both.
