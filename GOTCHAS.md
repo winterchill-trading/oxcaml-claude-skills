@@ -895,6 +895,13 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   APPROVED/DECLINED; the decline reason is on the card statement (`declineDetails`).
 - macOS `sed -i ''` fails when GNU sed is first on PATH (`can't read s/...`); use
   `sed -i` there or a short Python edit.
+- striga-client (2026-10-15): the sandbox's EUR account is missing from `/wallets/get/all`
+  and `/wallets/get` (only BNB/BTC/ETH/POL/SOL), so "no EUR account" from a wallet walk
+  means unlisted, not absent; its id comes from elsewhere (webhook, portal). Enrich and
+  statement work by that id, `/wallets/get/account` answers 403 `SCA_REQUIRED`
+  (`NO_SESSION`), and the EUR enrich body has no `accountId`: a required ppx_yojson_conv
+  field fails with "record elements were undefined", so keep ids optional until a live
+  body confirms them.
 
 ## Research sources (2026-10-13)
 
