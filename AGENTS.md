@@ -89,6 +89,10 @@ Apps
 - `hl-mm`, `market-maker`: market-making binaries (Hyperliquid; all three venues).
 - `hl-copy-core`, `hl-leaderboard`, `hl-copy-engine`, `hl-copy-api`, `hl-copy-web`:
   the copy-trading platform, ending in a Bonsai frontend.
+- `execution-algos`: venue-neutral execution algorithms (TWAP, VWAP, POV, passive,
+  adaptive copy), impact estimates and cost reports; used by `hl-copy-engine`.
+- `copy-backtest`: replays recorded markets and a leader's fills through the copy mirror
+  and the algorithms; Parquet results checked with DuckDB.
 - `neobank-api`, `neobank-web`: the neobank demo's HTTP API and Bonsai app.
 
 Infra
