@@ -2035,3 +2035,35 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   `History` is not in scope: "Failed to resolve reference unresolvedroot(History)". The
   library's own doc build is clean, so only CI's docs step of the including package sees
   it; write such references as code spans.
+
+## Collar and halt flags in the crypto simulators (2026-10-16)
+
+- The engine reports a collar rejection as `Invalid_price`, the same reason as a price off
+  the tick grid. Read `(Exchange.guard_stats ex).collar_rejected` before and after the
+  call to tell them apart; draining the guard log for it would steal events from the one
+  consumer.
+- `Exchange.drain_guard_events` forgets what it returns, so give it one owner (the server's
+  publish path or `Venue.sync`). Tests then read the server's kept events, after a final
+  `publish_events`; draining the live exchange in a test returns nothing.
+- Apply collar and halt settings after the input journal is attached, or the journal
+  replays without them and the guard events differ.
+- An IOC meant to hit a collar or halt must have resting liquidity to cross. Without it
+  the order is not marketable: it passes the collar and gets the no-liquidity error.
+- A market-wide halt writes one `Halted` and one `Reopened` event per instrument, so one
+  trigger on three symbols counts `halts 3`.
+- With the market simulation on, a collar re-prices many noise-trader market orders
+  (their protection price is clamped): about 35 `collar_repriced` in 30 s at 50 bps. Orders
+  placed before the first trade pass as `collar_unreferenced` (passive ones too).
+- An anchored minute with a 0.05% halt level halted the anchor's own replay orders
+  (`halt_rejected` 3): tight halt levels interfere with anchoring.
+- `Price_collar.Config.validate` and `Halt_rule.Config.validate` return sexp errors with
+  the whole config; expect tests pin it. `Halt_rule.Config` has five fields, so
+  `{ default with ... }` naming all of them is warning 23.
+- `Command.Arg_type.of_alist_exn` appends "(can be: ...)" to the flag doc; pass
+  `~list_values_in_help:false` when the doc already lists the values.
+- `Set_once.get_exn` no longer takes `[%here]` positionally in this Core.
+- `sed` on this machine is GNU sed: `sed -i ''` fails with "can't read"; use `sed -i`.
+- Agents editing sibling repositories break `dune build --root ..` for everyone (a stanza
+  with an `.mli` but no `.ml` yet). A private workspace of symlinks that leaves out the
+  repositories being edited avoids it; do not reuse a directory name another agent may
+  have created in the shared scratchpad.
