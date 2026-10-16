@@ -1924,8 +1924,8 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   advance the clock, then bind.
 - parquet's `created_by` is `%%VERSION_NUM%%`, substituted by `dune subst` only in opam
   pin builds, so file sizes differ between a workspace build and CI by the length of the
-  version string. market-data's day-close cram test pinned byte counts and had been red
-  in CI since parquet adopted it; cut sizes from cram output.
+  version string. market-data's day-close cram test pinned byte counts and failed in CI
+  (2 bytes more) and locally (10 more); cut sizes from cram output.
 - With several agents' repos in one dune workspace, `dune build --root .. @mm-core/all`
   printed another repo's stanza error (a library missing
   `modules_without_implementation`) while mm-core built fine; judge by
