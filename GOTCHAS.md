@@ -1790,3 +1790,37 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - To compare a memory store and a PostgreSQL store in one expect test, run the
   conformance transcript on each and read it back with `[%expect.output]`; compare the
   two strings and print only "same transcript" or both.
+
+## Execution algorithms and copy backtests (2026-10-16)
+
+- odoc in CI resolves no links into other packages (their docs are not built), so
+  `{!Market_data.L2_book}` fails the warnings-as-errors docs step; write
+  `[Market_data.L2_book]`. Inside one wrapped library `{!Algo.name}` from another module
+  also failed with "Lookup failure (module): root(..__Algo)"; plain code text avoids it.
+- A field added to a record that is a sexp file format: `[@sexp.default x]
+  [@sexp_drop_default.equal]` keeps old files readable and default output byte-identical
+  (the API's file tests did not move). The bin_io side still needs a `Stable.V2`, and a
+  journal of it a new digest. `Market_data.Framed.Writer` refuses to append under another
+  digest to an existing day file, so version 2 day files need their own name
+  (`<date>.v2.journal`); the loader picks the reader from `Framed.read_digest`.
+- Two repositories can share a type without a dependency edge: keep a copy and pin
+  `Bin_prot.Shape.eval_to_digest_string` of both in a test of a repository that sees
+  both (hl-copy-core's `Exec_algo` and execution-algos' `Algo`, checked in
+  hl-copy-engine). Adding the dependency instead would have broken the CI of every
+  repository that pins hl-copy-core.
+- A scheduler that cancels resting children at its horizon and sweeps the rest with an
+  IOC must send the sweep after the cancels are confirmed: until then the resting size
+  still counts as working, and "never more than the target" leaves nothing to sweep. The
+  quickcheck found it only once the venue had latency; give the generated market two
+  round trips after the horizon.
+- Symlinking sibling repositories into a scratch workspace picks up other agents'
+  half-written files (a new `.mli` without its `.ml` stops dune for everyone); snapshot
+  dependencies with `git archive HEAD | tar -x` instead and symlink only your own repos.
+- Following an account's own `userFills` to see resting fills: the first message after
+  subscribing is the account's history (`is_snapshot`), already applied or replayed from
+  the journal; only snapshots after a `Resync` carry missed fills.
+- hl-copy-engine's `hl_copy_lag_ms` counts only orders sent on a leader update; children
+  of algorithms other than `Immediate` go out on market ticks, so lag shows no samples
+  for those follows.
+- Inside `let%map_open.Command` bodies `return` is the parameter's even with
+  `open Async`; write `Deferred.return` (or the `Deferred.Or_error` one) explicitly.
