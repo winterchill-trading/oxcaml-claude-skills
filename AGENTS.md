@@ -42,6 +42,8 @@ Trading core
 - `order-book`: price-time priority book and matching; sits between the two packages above.
 - `mm-core`: pure quoter, reconciler, risk, `Venue.S` and the `Live.Make` event loop.
 - `price-anchor`: anchors a simulated market to a live or recorded reference.
+- `sim-scorecard`: stylised facts of a simulator run against recorded data, with
+  distances and pass bands.
 
 Venues
 - `hl-protocol`, `binance-protocol`, `bybit-protocol`: wire types, JSON codecs, signing.
