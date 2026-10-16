@@ -2166,3 +2166,57 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - `{ Policy.default with ... }` that lists every field is warning 23 (useless `with`), an
   error in tests; write the record literal instead.
 - `uv add shap` on Python 3.14 resolved shap 0.53 with no numba build.
+
+## Consumer gaps: owned schemas, bundled data, revocation (sanctions-screening, transaction-monitoring, 2026-10-16)
+
+- pg-async's `Migrate.apply` writes to an unqualified `schema_migrations`, so every
+  library using it shared the search path's table with the host application: two
+  libraries at version 1 clash (checksum mismatch). Without changing pg-async: create the
+  schema, `SET search_path TO <schema>` on the migrating connection, then call
+  `Migrate.apply`; its table and every unqualified table in the migration files land in
+  the schema. Close that connection afterwards (the pool's connections keep the default
+  path, so queries qualify tables).
+- `CREATE SCHEMA IF NOT EXISTS` is not safe when two instances start at once (unique
+  violation on `pg_namespace`); take a session `pg_advisory_lock` on a per-schema key
+  first. Closing the connection releases it.
+- Adopting installs made by an older version: recognise its rows in the shared
+  `schema_migrations` by the old files' MD5 checksums (unique to the library, unlike
+  names such as `init`), copy them into `<schema>.schema_migrations` with the new files'
+  checksums, and keep the old migration files as test fixtures to apply in the adoption
+  test. Tables that lived in `public` move with `ALTER TABLE ... SET SCHEMA` (indexes and
+  constraints follow).
+- `to_regclass('schema_migrations')` resolves through the current search path; get the
+  schema with `quote_ident(n.nspname)` from `pg_class`/`pg_namespace` before changing the
+  path.
+- In `ON CONFLICT ... DO UPDATE ... WHERE`, `schema.table.column` works for the target
+  table.
+- `In_channel.read_all` on a 128 MB file held about three times the file at peak (a
+  doubling buffer plus the final copy). Read with the file's length in one allocation:
+  `Stdlib.really_input_string` (Core's `really_input_string` is deprecated, an error in
+  the dev profile).
+- Streaming XML element by element is not enough if every element's tree is kept: the
+  OFAC advanced XML parse kept 19 457 `DistinctParty` trees and peaked at 883 MB. Reduce
+  each element to the fields used as soon as it is read and intern the repeated ids
+  (158 MB). A resumable scanner over a channel (refill when a token is incomplete, keep
+  positions relative to the unconsumed start) removed the 128 MB string itself; test it
+  against the whole-string scanner at chunk sizes 1, 2, 3 and 7.
+- ppx_sexp_conv's `t_of_sexp` accepts a constructor with a lower-case first letter
+  (`structuring` reads as `Structuring`), but `sexp_of_t` prints the capitalised form.
+- Embedding data files: a generator executable run by a `(rule (deps (glob_files_rec
+  %{project_root}/fixtures/**)) ...)` sees the `dune` file of that directory too; skip
+  it. `glob_files_rec` paths come relative to the rule's directory (`../fixtures/...`).
+- Installed files under `_build/install/default/share/<pkg>/` are symlinks:
+  `find -type f` lists none of them; read the `<pkg>.install` file instead.
+- A Quickcheck property inside an Async expect test: iterate seeds yourself
+  (`Quickcheck.Generator.generate gen ~size ~random:(Splittable_random.of_int seed)`)
+  with `Deferred.List.iter ~how:`Sequential`, and count failures. Check such a property
+  bites by breaking the code once (a revocation that kept the event failed 150 of 150).
+- Undoing a mutation test with `git checkout <file>` restores the last commit and throws
+  away uncommitted work in that file; copy the file aside first, or commit before
+  mutating.
+- A `let%expect_test` in an Async test file must end with a deferred; ending with
+  `[%expect ...]` alone gives "This expression has type unit but ... Deferred.t". Add
+  `return ()` after it.
+- The sanctions prefilter (trigram Dice) can miss a truncated or reversed Latin probe
+  against an Arabic-script list name that the consonant skeleton scores at 850 to 900; an
+  Arabic alias in a new fixture made the "missed by the prefilter: 0" test fail.
