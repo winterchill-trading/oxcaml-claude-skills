@@ -1824,3 +1824,34 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   for those follows.
 - Inside `let%map_open.Command` bodies `return` is the parameter's even with
   `open Async`; write `Deferred.return` (or the `Deferred.Or_error` one) explicitly.
+
+## Transaction monitoring (transaction-monitoring, 2026-10-16)
+
+- On the ox switch `List.split_n` returns an unboxed pair: `let #(a, b) = List.split_n l n`.
+- `Hash_queue.Make (Id)` over a `Ledger.Validated_id.Make` id fails with "The layout of
+  the first is any"; use the id's own `Id.Hash_queue` (from `Identifiable.S`).
+- A constructor that exists in two variants in scope (`Assigned` in `Status` and in
+  `Event`) is only disambiguated through an annotated parameter; an unannotated helper
+  argument gives "Unbound constructor".
+- With `open! Async`, `printf` is Async's buffered writer; a program run through
+  `Thread_safe.block_on_async_exn` exits before it flushes and a cram-style diff sees an
+  empty file. `Writer.flushed (force Writer.stdout)` at the end.
+- `dune build --profile release` with a per-agent `DUNE_BUILD_DIR` builds into the same
+  `default` context directory, replacing the dev artifacts (there is no `release/`).
+- ocamlformat reflows a markdown table in a doc comment into one paragraph; odoc has no
+  pipe tables anyway. Write lists (`- item`) in `.mli` comments.
+- odoc: `{!Customer.snapshot}` is ambiguous when a module has both `type snapshot` and
+  `val snapshot` (write `{!Customer.val-snapshot}`); a `[...]` code span containing `[`
+  fails with "End of text is not allowed"; use `{v ... v}`.
+- scikit-learn 1.9 `HistGradientBoostingClassifier` crashes in binning ("window shape
+  cannot be larger than input array shape") on an all-NaN column. When the feature
+  schema is shared with OCaml, fit on the columns with two or more values and map the
+  exported tree feature indices back to the full schema.
+- Isotonic calibration fitted on a few hundred positives is a step function with a
+  handful of levels; a threshold chosen for an alert budget then jumps from far under
+  to far over the budget. With positive class weighting `w`, subtracting `log w` from
+  the exported base score gives prior-corrected probabilities and a continuous score
+  with identity calibration.
+- Rolling-profile rules about "new payees" fire on every biller and merchant while
+  profiles are empty: warm profiles on 30 days of history before going live, and drop
+  the first weeks from training rows.
