@@ -2105,3 +2105,34 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - Annualizing ten-second backtest samples multiplies a per-sample Sharpe ratio by about
   1,776; over minutes the annualized figure is in the hundreds. Gate on PSR, DSR, PBO
   and p-values instead.
+
+### Leader persistence, integrity and follow algorithms (2026-10-16)
+
+- `Array.binary_search` called inside a small helper that returns its result fails to
+  compile on the OxCaml switch ("This value is local but is expected to be local to the
+  parent region or global ... function return value"); a hand-written lower-bound loop
+  does not.
+- ppx_yojson_conv's `[@default x]` is also read by ppx_sexp_conv as `sexp.default`, so
+  adding `[@sexp.list]`/`[@sexp.option]` to the same field fails with "mutually exclusive:
+  sexp.default [@sexp.list]". Write `[@yojson.default x]` when the field also carries a
+  sexp attribute.
+- A fill dedup keyed on `(id, time, coin)` drops one side of a self trade (both sides share
+  the trade id); add the side to the key.
+- A chance baseline built by shifting times by whole hours finds nothing to match on a
+  simulator run of seconds, so every pair looks linked; shift circularly inside the
+  observed span and skip the check when the span is under 20 windows.
+- In a simulator every collected account trades with every other: a "counterparty" rule on
+  a few shared trades flags them all. Compare the shared share with what random matching
+  among the watched accounts gives (vol_b / total) and require ten or more trades.
+- backtest-stats' `Series` rejects returns at or below -1 (raises in `of_returns`); a
+  rebuilt curve that crosses zero needs its wipe-out clamped above -1.
+- Hyperliquid all-time `portfolio` curves are sampled about weekly, and accounts that
+  started nearly empty show window returns of thousands of percent; cap returns before
+  averaging random picks, or one account decides the baseline.
+- `Time_ns.to_string_iso8601_basic` prints `2026-10-16T01:02:03.250000000Z` (with dashes and
+  colons) despite its name; `Time_ns.of_string_with_utc_offset` reads it back.
+- zsh does not split `$var` in `for`/`set --`/`git add $files`; run such loops with
+  `bash -c`.
+- hl-copy-api's e2e CI job builds hl-copy-engine and hl-copy-core from their main branches;
+  while one has pushed a type change (`Plan.Stable.V2`) the other has not adopted, the job
+  fails in the engine's build regardless of hl-copy-api's commit.
