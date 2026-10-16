@@ -2136,3 +2136,33 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - hl-copy-api's e2e CI job builds hl-copy-engine and hl-copy-core from their main branches;
   while one has pushed a type change (`Plan.Stable.V2`) the other has not adopted, the job
   fails in the engine's build regardless of hl-copy-api's commit.
+
+## Model explanations and abstention (risk-models, transaction-monitoring, 2026-10-16)
+
+- On OCaml 5 arm64 every store into an `int array` is preceded by `dmb ishld` (check with
+  `otool -tV` on the `.o`); an int Bigarray store got one too. Stores into a float array are
+  plain. Keeping hot scratch integers in a float array (exact below 2^53) took a node pass
+  from 45 to 31 us.
+- A latency-bound loop is not always memory-bound: tree attributions stayed at about 30 us
+  with the table loads removed. The cost was instruction count (about 15 instructions per
+  inner iteration with tagging, field reloads and polls), so moving work out of the per-row
+  path (tabulating each leaf by path pattern: 170 to 30 us) helped and micro-layout changes
+  (lanes, grouping by loop length, branchless child choice) did not.
+- `[@zero_alloc]` on a function that takes labelled float arguments and is not inlined
+  fails with "allocation of 16 bytes for float": pass `float#` (`~(zero : float#)`) and
+  convert inside.
+- In the dev profile (`-opaque`), calls to another module's small accessors are "indirect
+  calls" to the zero_alloc checker even when that module's function is annotated; copy the
+  arrays into the caller's record once, or annotate the accessor in the `.mli`.
+- shap 0.53 `TreeExplainer` interventional mode adds in single precision (a leaf of
+  1 + 1e-12 comes back as exactly 1) and its values stop adding up for rows that have a
+  value exactly on a split threshold; pass `check_additivity=False`, leave such rows out of
+  a parity fixture, and test them against enumerated Shapley values instead.
+  Path-dependent mode on a custom tree dict (`children_default`, `node_sample_weight`,
+  `input_dtype`/`internal_dtype` float64) matched OCaml to 3.6e-15.
+- A sexp record field `x : t option [@default None]` prints `(x ())` and needs double
+  parentheses in hand-written files (`(x ((a 1))))`); `[@sexp.option]` reads `(x ((a 1)))`
+  and omits the field when absent.
+- `{ Policy.default with ... }` that lists every field is warning 23 (useless `with`), an
+  error in tests; write the record literal instead.
+- `uv add shap` on Python 3.14 resolved shap 0.53 with no numba build.
