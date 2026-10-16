@@ -63,6 +63,8 @@ Market data
 - `market-data`: normalized stable types, event logs, Parquet sink, day close, replay.
 - `market-recorder`: records live feeds to raw minute files and event logs.
 - `market-replay`: replays raw lines over HTTP and venue-native websockets.
+- `backtest-stats`: deflated and probabilistic Sharpe ratios, reality check and SPA,
+  probability of backtest overfitting, VaR backtests and a sexp acceptance gate.
 
 Fiat rails
 - `griffin-client`, `lightspark-client`, `striga-client`: Async clients and CLIs for
