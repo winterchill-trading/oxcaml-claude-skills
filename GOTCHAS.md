@@ -1930,3 +1930,37 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   printed another repo's stanza error (a library missing
   `modules_without_implementation`) while mm-core built fine; judge by
   `File "mm-core/...` blocks only.
+
+## Price collar and sim-scorecard (2026-10-16)
+
+- New `Event.t`, `Reject_reason.t` (exchange-core) constructors break every simulator and
+  `mm-core` on their next CI run: they match exhaustively and pin exchange-core at `main`.
+  Put new engine behaviour in a separate log with `before_seq` (as `Trigger_event` and
+  `Guard_event` do) and reuse existing reasons; append `Input.t` constructors only.
+- Settings that change matching belong in recorded `Input.t` values, not `Exchange.Config.t`
+  fields (front ends build that record field by field) or a new journal header.
+- An emptiness test (`Hashtbl.is_empty`) before a per-order guard kept the engine's
+  allocation pins unchanged; a halt check over every instrument on each order cost 94 words
+  per IOC round trip (each `Hashtbl.find` returns a fresh `Some`), checking only the
+  order's symbol with an allocation-free threshold test cut it to 16.
+- A price band narrower than the significant-figure grid (5 figures at 603.94 is a 0.01
+  step) makes inward rounding put the upper bound below the lower; clamp each bound to the
+  first valid price on its side of the reference.
+- Quickcheck asserts on prices near 1e8 in floats fail on rounding; compare integer units.
+- A sibling's half-written `dune` file breaks `dune build --root ..` for every repository.
+  A private workspace (a directory with copies of the root `dune-workspace` and
+  `dune-project` and symlinks to the needed repositories) works: dune follows the links.
+  For a repository another agent is editing, link a `git clone` of its committed head.
+  `ln -sfn target dir/name` where `dir/name` is an existing directory creates the link
+  inside it.
+- `open! Async` replaces `printf` with Async's writer, which a `Command.basic` never
+  flushes: the command prints nothing. Use `Core.printf` there.
+- zsh does not split `$VAR` into words, so `cmd $FLAGS` passes one argument ("unknown flag
+  -from X -to Y"); run such commands from a bash script.
+- A two-sample KS test on standardised returns barely sees a kurtosis gap (0.78 against
+  0.01 gave KS 0.018); compare kurtosis directly (log ratio of raw kurtosis).
+- Sampling a sparse book on a fixed grid forward-fills it into many zero returns that look
+  like plenty of data with huge kurtosis; count the book samples behind the grid.
+- hl-sim's `-anchor` removes the noise traders from the anchored coin unless
+  `-anchor-noise N` is given: only the shadow levels quote and nothing trades.
+- `Core.Array.last` is deprecated as an error; use `Array.last_exn`.
