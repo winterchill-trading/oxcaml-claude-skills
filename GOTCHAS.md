@@ -2030,3 +2030,8 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - Another agent's `.mli` without its `.ml` in hl-sim stopped the e2e script's
   `dune build` mid-session; scripts that build siblings should allow reusing already
   built binaries (market-maker's `NO_BUILD=1`).
+- odoc resolves a `{!History.venue}` reference in a module type again wherever the
+  signature is included (`include Leader_scoring.Source.S` in another library), where
+  `History` is not in scope: "Failed to resolve reference unresolvedroot(History)". The
+  library's own doc build is clean, so only CI's docs step of the including package sees
+  it; write such references as code spans.
