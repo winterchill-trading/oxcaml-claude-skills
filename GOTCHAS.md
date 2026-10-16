@@ -2000,3 +2000,33 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   with `print_s` differed in the 16th digit between macOS arm64 and Linux amd64 CI
   (1.8637044325325254 vs ...265); bootstrap p-values (counts) matched exactly. Print
   simulated statistics with `%.6f`.
+
+### Reference guard and toxicity gate in market-maker (2026-10-16)
+
+- A function whose arguments are all labelled (`~symbol ... ~stop`) never erases its
+  optional arguments, so callers of market-maker's `RUNNER.connect_and_run` pass every
+  `?x` explicitly; two new optional arguments broke `bin/main.ml` and a test with "This
+  expression has type ?reference:... -> ..." until they passed `?reference:None`.
+- `dune promote --root ..` run from a repository promotes every repository's
+  `.corrected` files; with a file argument it wants the path from the workspace root
+  (`market-maker/test/x.ml`) and only accepts it when run from the root. Promote from the
+  root with explicit paths.
+- ppx_sexp_conv's variant errors quote the source path (`mm-core/lib/reference_guard.ml`
+  in the workspace, another prefix in an opam build); do not pin such messages in expect
+  tests of a dependent repository.
+- `Live.on_toxicity` ticks on the loop's sequencer, later: `Strategy.toxicity_decision`
+  read right after still shows the previous decision. Compute the decision for a log row
+  with `Toxicity_gate.decide` on the params' gate.
+- hl-sim VPIN over 0.05 BTC buckets (window 10) sits between 0.4 and 0.6 on the noise
+  traders' mixed flow, and the percentile signal jumps straight to 1 on the first toxic
+  bucket (no widening phase). A burst of IOC buys of 0.005 or 0.01 BTC every 0.1 s
+  peaked at 0.75 to 0.8 against the counterflow; 0.02 BTC reached 0.87. Use the raw VPIN
+  signal and thresholds above the measured baseline for an end-to-end widen-then-pull.
+- Pausing a reference simulator with `kill -STOP` freezes an anchored hl-sim's reference:
+  its anchor reports `fresh: false` after `-anchor-max-staleness-ms`, and after
+  `kill -CONT` it is fresh again within half a second. Resume a stopped process before
+  sending it SIGTERM in cleanup, or it never exits.
+- `sed -i ''` fails here: the `sed` on PATH is GNU sed (`sed -i 's/...'`).
+- Another agent's `.mli` without its `.ml` in hl-sim stopped the e2e script's
+  `dune build` mid-session; scripts that build siblings should allow reusing already
+  built binaries (market-maker's `NO_BUILD=1`).
