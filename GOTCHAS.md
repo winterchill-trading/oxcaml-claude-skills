@@ -1855,3 +1855,45 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - Rolling-profile rules about "new payees" fire on every biller and merchant while
   profiles are empty: warm profiles on 30 days of history before going live, and drop
   the first weeks from training rows.
+
+## Leader scoring (leader-scoring, 2026-10-16)
+
+- Hyperliquid fill histories carry `#<id>` instruments next to spot (`@107`, `PURR/USDC`):
+  they are not perpetuals and never appear in `clearinghouseState`, so replaying them
+  against snapshot positions reports mismatches. Drop all three before building a perp
+  track record.
+- Large accounts hold perp positions for the whole month with no fill at all; a curve
+  built from fills alone shows near-zero leverage for them. Seed every coin of the latest
+  snapshot that has no fill at the start of the history.
+- The `portfolio` windows differ a lot in resolution: `month` is about daily, `allTime`
+  about one point every two weeks (2026-10-15, mainnet). Daily metrics over `allTime`
+  are mostly zero returns with jumps; say so wherever they are used.
+- Dataset cutoffs taken as `from + lookback + k * step` differ per account by the hours
+  of its first event, so no two accounts share a cutoff and cross-sectional rank
+  correlations quietly use one row each. Put cutoffs on one grid (multiples of the step
+  since the epoch).
+- A venue curve with three or four points (hl-sim samples a few per run) gives absurd
+  annualized ratios; prefer the curve rebuilt from fills and anchored on a snapshot unless
+  the venue curve has some resolution.
+- "A deeper trough never lowers the max drawdown" is false for the first point and for a
+  running peak; the property only holds for a point below an earlier peak.
+- A capacity bisection that rebuilt each order and walked each book level per step cost
+  65 ms per leader; precomputing orders once and walking running depth totals with a
+  binary search took it to 4.5 ms. `let mutable` accumulators plus an `#(a, b)` return
+  from an `[@inline]` helper removed the per-order tuple and float boxes.
+- Inside `Deferred.Or_error.Let_syntax`, `match%map` is the Or_error map: a `| Error _ ->`
+  case on a plain `Deferred` result fails with "This pattern should not be a
+  constructor"; use `Deferred.map` explicitly. A `Writer.with_file` callback in that scope
+  must return `Deferred.unit`, not `return ()`.
+- Another agent's untracked `.mli` in `market-data` (no `.ml` yet) stopped every
+  dependent's build with "Some modules don't have an implementation". A scratchpad
+  workspace with the root `dune-workspace`/`dune-project`, symlinks to the repositories
+  you change and a `git archive HEAD` copy of the broken one kept building; it needs its
+  own `DUNE_BUILD_DIR` and one cold build.
+- Python's `csv` writes CRLF; git converts it on commit (a warning) and the OCaml reader
+  must strip `\r` before splitting.
+- The `fake_dom.js` used by hl-copy-web's smoke tests matches one simple selector at a
+  time: `#id tbody tr` throws "unsupported selector"; descend with `querySelector` calls.
+- `Fill.compare_by_time` ordering by trade id inside one millisecond does not follow
+  `startPosition` on Hyperliquid; position repairs from `startPosition` absorb it, but
+  never assume tid order is execution order.
