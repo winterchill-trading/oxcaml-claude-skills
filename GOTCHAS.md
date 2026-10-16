@@ -1964,3 +1964,39 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - hl-sim's `-anchor` removes the noise traders from the anchored coin unless
   `-anchor-noise N` is given: only the shadow levels quote and nothing trades.
 - `Core.Array.last` is deprecated as an error; use `Array.last_exn`.
+
+### backtest-stats (2026-10-16)
+
+- `dune promote --root ..` resolves `..` from the current directory: run from `test/`, it
+  promoted into a nested `backtest-stats/backtest-stats/test/` copy instead of the real
+  file. Promote from the repository directory.
+- Another repository's half-edited dune stanza (a module without implementation) prints
+  its error in every workspace build, also for `@<repo>/runtest`; your own targets still
+  build. Filter build output by your repository's path before treating it as a failure.
+- A float `ref` updated inside an `Array.iter`/`Array.fold` closure is boxed on every
+  update: `Metrics.Moments.of_array` over 2520 returns allocated 40k words, 31 after a
+  `for` loop over `let mutable` accumulators (sharpe 15k to 11). One drawdown loop with a
+  float `let mutable` assigned in an `if` branch still allocates 2 words per iteration in
+  release; cause not found (`Float.max` was not it).
+- odoc: verbatim `{v ... v}` lines must be indented to the opening `{v` (warning, so an
+  error with ODOC_WARN_ERROR), and `[0, n)` in a code span is "End of text is not allowed
+  in '[...]'".
+- Parquet `DATE` columns (DuckDB `COPY ... (FORMAT parquet)`) come back from
+  `Parquet.Reader` as `Int` days; read the unit from the column's `logical_type` /
+  `converted_type`, not from the magnitude.
+- Cram: in `cmd | jq ...` the exit status shown is jq's, so a `[2]` from `cmd` disappears;
+  redirect to a file and run jq as a second command.
+- Statistics: the SPA statistic is truncated at zero, so its p-value is 1 whenever the best
+  strategy lost in sample; under the null it rejects at the nominal rate but is not
+  uniform (mean about 0.62). Test its size at 5% and 10%, and uniformity only on the
+  reality check with one strategy.
+- The deflated Sharpe ratio is harsh with the edge strategy inside the trial set: a real
+  0.15% a day edge (annualized Sharpe 1.9, three years) among 30 trials gets DSR 0.69 and
+  fails a 0.95 gate; 0.25% a day passes (0.996). Pick gate thresholds with that in mind.
+- Annualizing with the autocorrelation correction can move the Sharpe ratio far from the
+  square-root rule: 24 monthly returns with lag-1 autocorrelation -0.48 give 1.33 by
+  `sqrt 12` and 4.48 corrected.
+- Statistics computed from Box-Muller normals (`log`, `cos`) printed at full precision
+  with `print_s` differed in the 16th digit between macOS arm64 and Linux amd64 CI
+  (1.8637044325325254 vs ...265); bootstrap p-values (counts) matched exactly. Print
+  simulated statistics with `%.6f`.
