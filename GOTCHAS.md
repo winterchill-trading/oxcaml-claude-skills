@@ -2067,3 +2067,41 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
   with an `.mli` but no `.ml` yet). A private workspace of symlinks that leaves out the
   repositories being edited avoids it; do not reuse a directory name another agent may
   have created in the shared scratchpad.
+
+## No-trade band, backtest statistics and attribution (hl-copy-core, hl-copy-engine, copy-backtest, 2026-10-16)
+
+- Scripted edits through a Python heredoc: a backslash at the end of a line inside a
+  non-raw triple-quoted string is Python's line continuation, so OCaml string
+  continuations (`"... \` newline `..."`) lose the backslash and the next line's indent
+  becomes part of the string ("Shortfall      (bps)"). Use raw strings or check the
+  result.
+- `dune promote --root .. path/file.ml` fails with a usage error; `dune promote --root ..`
+  with no file promotes everything pending in that build directory.
+- One more field in a record the hot path copies with `{ t with ... }` adds one word per
+  copy: `Mirror.t` with a band field moved the allocation pin by two words per leader
+  update (two copies), with the band off.
+- A new constructor in a journaled variant (`Plan.Note.Reason`) changes the bin_shape
+  digest, and the engine's journal files are headed by the digest: the change cascades to
+  `Plan.Stable.V2`, `Follower_core.Output.Stable.V3`, `Journal.Entry.Stable.V3` and a new
+  file name (`.v3.journal`) so a restart on the upgrade day never appends to an older
+  file. Converting the older output is lossless when the new note is the only addition.
+- A dependent's CI pins break when a pinned sibling gains a dependency: hl-copy-core's
+  backtest job failed with "leader-scoring -> backtest-stats unknown package" until
+  backtest-stats was pinned before leader-scoring.
+- macOS `/bin/bash` is 3.2: `"${arr[@]}"` of an empty array under `set -u` is an unbound
+  variable error. Write `${arr[@]+"${arr[@]}"}`.
+- The engine's `Immediate` parents start on an empty book, so their cost report's arrival
+  price is the reference (the leader's fill price): in a sim-versus-live attribution
+  their timing term is zero and the whole move shows as slippage, while the backtest
+  arrives at the replayed mid. Compare timing plus slippage for `Immediate` follows.
+- The one-period no-trade half-width `c / (gamma s^2)` (fraction of equity) is very
+  sensitive to the horizon of `s`: 9.5 bp of cost with 1% volatility and risk aversion 1
+  gives 950% of equity (never trades). Daily volatility (300 bp) and risk aversion 20 give
+  5.3%.
+- An out-of-sample share cut with `round_down (0.3 * 181)` is 0.298, and a gate asking
+  for 0.30 rejects it; round the out-of-sample period count up.
+- A gap the band holds back is a `Within_band` note again at every resync while it
+  lasts: skip counts are per plan and the summed saved cost is an upper bound.
+- Annualizing ten-second backtest samples multiplies a per-sample Sharpe ratio by about
+  1,776; over minutes the annualized figure is in the hundreds. Gate on PSR, DSR, PBO
+  and p-values instead.
