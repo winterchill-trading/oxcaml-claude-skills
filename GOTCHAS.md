@@ -1897,3 +1897,36 @@ Verified in a scratch project on `5.2.0+ox`; notes and numbers in specs
 - `Fill.compare_by_time` ordering by trade id inside one millisecond does not follow
   `startPosition` on Hyperliquid; position repairs from `startPosition` absorb it, but
   never assume tid order is execution order.
+
+### Market features and plausibility guards (market-data, mm-core, 2026-10-16)
+
+- Core's `List.init n ~f` calls `f` from the last index down. A test tape built with a
+  stateful generator (a random walk in a `ref`) inside `List.init` comes out reversed:
+  prices and sides no longer match. Build tapes with a loop.
+- `a @ f t` evaluates `f t` before `a`. `List.concat_map trades ~f:(add t) @ flush t`
+  flushed an empty state first and lost the last bar's volume; bind the left side first.
+- A per-trade fold can allocate nothing with a boxed record of mutable `Float_u.t`
+  fields (put them after the value fields), `Float_u` arithmetic from
+  `stdlib_upstream_compatible` (no extra opam dependency), prices read with `to_units`
+  and multiplied by `#0.00000001`, and an `or_null` or `[]` result. `Price.to_float` across
+  libraries boxes in the dev profile.
+- A z-score over a window of equal values divides by a rounding residue (about 1e-17)
+  and gives 10^15; guard the deviation with a floor. A plain "share at or below" CDF is
+  1.0 on a flat history; a mid-rank (equal values count half) gives 0.5.
+- A VPIN percentile ranked against its own recent history relaxes under one-sided flow
+  that lasts: the history fills with 1s and the gate goes back to normal. A sustained toxic
+  regime needs a threshold on VPIN itself.
+- Adding fields to a record that a bisimulation test compares by sexp against a reference
+  implementation breaks the comparison; `[@sexp.option]` and
+  `[@sexp_drop_if equal default]` keep the sexp identical while the feature is unused.
+- `Live.stop` on a synthetic `Time_source` waits on its own timers: a test that binds on
+  `stop` without advancing the clock hangs (a 600 s tool timeout here). Call `stop`,
+  advance the clock, then bind.
+- parquet's `created_by` is `%%VERSION_NUM%%`, substituted by `dune subst` only in opam
+  pin builds, so file sizes differ between a workspace build and CI by the length of the
+  version string. market-data's day-close cram test pinned byte counts and had been red
+  in CI since parquet adopted it; cut sizes from cram output.
+- With several agents' repos in one dune workspace, `dune build --root .. @mm-core/all`
+  printed another repo's stanza error (a library missing
+  `modules_without_implementation`) while mm-core built fine; judge by
+  `File "mm-core/...` blocks only.
