@@ -89,6 +89,8 @@ Apps
 - `hl-mm`, `market-maker`: market-making binaries (Hyperliquid; all three venues).
 - `hl-copy-core`, `hl-leaderboard`, `hl-copy-engine`, `hl-copy-api`, `hl-copy-web`:
   the copy-trading platform, ending in a Bonsai frontend.
+- `leader-scoring`: track records, metrics, composite and learned leader scores, copy
+  capacity and alerts; a read-only Hyperliquid source (`leader-scoring-hl`).
 - `execution-algos`: venue-neutral execution algorithms (TWAP, VWAP, POV, passive,
   adaptive copy), impact estimates and cost reports; used by `hl-copy-engine`.
 - `copy-backtest`: replays recorded markets and a leader's fills through the copy mirror
